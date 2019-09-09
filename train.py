@@ -32,7 +32,7 @@ class Trainer:
 
         # initialize tensorboardx
         self.writer = SummaryWriter(
-            f"{GITIGNORED_DIR}/{RESULTS_DIR}/{DATA_MANAGER.stamp}/tensorboardx/")
+            f"{GITIGNORED_DIR}/{RESULTS_DIR}/{DATA_MANAGER.stamp}/{SUMMARY_DIR}/")
 
         # todo: check input on nulls
 
@@ -65,11 +65,11 @@ class Trainer:
                 # do epoch
                 epoch_progress = self._epoch_iteration(epoch)
 
-                # add progress
+                # add progress-list to progress
                 progress += epoch_progress
 
                 # write progress to pickle file (overwrite because there is no point keeping seperate versions)
-                DATA_MANAGER.save_python_obj(progress, f"{DATA_MANAGER.stamp}/{PROGRESS_DIR}/progress_list",
+                DATA_MANAGER.save_python_obj(progress, f"{RESULTS_DIR}/{DATA_MANAGER.stamp}/{PROGRESS_DIR}/progress_list",
                                              print_success=False)
 
                 # write models if needed (don't save the first one
@@ -105,9 +105,13 @@ class Trainer:
 
         for i, batch in enumerate(self.data_loader):
 
+            # do forward pass and whatnot on batch
             loss_batch, accuracy_batch = self._batch_iteration(batch)
 
-            # calculate amount of passed batches
+            # add to list somehow: todo: make statistic class
+            progress.append({"loss": loss_batch, "acc": accuracy_batch})
+
+            # calculate amount of batches passed
             batches_passed = i + (epoch_num * len(self.data_loader))
 
             # print progress to terminal

@@ -54,7 +54,7 @@ def save_models(models: List[nn.Module],
     """
     save_dict = {str(model.__class__): model.state_dict() for model in models}
 
-    DATA_MANAGER.save_python_obj(save_dict, f"{DATA_MANAGER.stamp}/{MODELS_DIR}/{suffix}")
+    DATA_MANAGER.save_python_obj(save_dict, f"{RESULTS_DIR}/{DATA_MANAGER.stamp}/{MODELS_DIR}/{suffix}")
 
 
 # needed to load in class references
