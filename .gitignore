@@ -109,6 +109,8 @@ venv.bak/
 ###### local data
 ./local_data/
 ./local_data/*
+local_data/*
+local_data
 
 
 ##### pycharm idea
