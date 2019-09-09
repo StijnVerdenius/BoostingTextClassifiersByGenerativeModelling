@@ -32,7 +32,7 @@ class Trainer:
 
         # initialize tensorboardx
         self.writer = SummaryWriter(
-            f"{RESULTS_DIR}/{DATA_MANAGER.stamp}/tensorboardx/")
+            f"{GITIGNORED_DIR}/{RESULTS_DIR}/{DATA_MANAGER.stamp}/tensorboardx/")
 
         # todo: check input on nulls
 
