@@ -42,6 +42,7 @@ def parse():
     parser.add_argument('--epochs', default=500, type=int, help='max number of epochs')
     parser.add_argument('--eval_freq', default=10, type=int, help='evaluate every x epochs')
     parser.add_argument('--saving_freq', default=50, type=int, help='save every x epochs')
+    parser.add_argument('--batch_size', default=128, type=int, help='size of batches')
 
     parser.add_argument('--max_training_minutes', default=1e-4, type=int, help='max mins of training be4 save-and-kill')
     parser.add_argument('--learning_rate', default=1e-4, type=float, help='learning rate')
