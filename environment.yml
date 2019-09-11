@@ -2,7 +2,12 @@ name: dl4nlp
 channels:
 - pytorch
 - defaults
+- conda-forge
 dependencies:
-  - python=3.7
+  - python=3.7.*
   - pytorch=1.2.0
-#  TODO: ADD!!
+  - tensorboardX=1.8.*
+  - matplotlib==3.1.1
+  - numpy=1.17.*
+  - tqdm=4.35.*
+#  TODO: add what you need!!

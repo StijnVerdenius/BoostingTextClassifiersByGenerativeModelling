@@ -3,6 +3,7 @@ import torch
 
 from models.GeneralModel import GeneralModel
 
+# this is a dummy, please make your own versions that inherets from general model and implements forward
 
 class DummyGenerator(GeneralModel):
 
@@ -12,5 +13,5 @@ class DummyGenerator(GeneralModel):
     def forward(self, inp):
         pass
 
-    def parameters(self):
+    def parameters(self): #don't implement self.parameters() in your own versions
         return [torch.zeros((2,2))]

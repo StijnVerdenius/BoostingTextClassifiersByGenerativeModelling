@@ -1,31 +1,39 @@
-from typing import List
+import argparse
+import sys
+from datetime import datetime
+from typing import List, Tuple
 
-from utils.constants import *
+import torch
 from tensorboardX import SummaryWriter
+from torch.optim.optimizer import Optimizer
+from torch.utils.data import DataLoader
 
-import sys, os
-
+from models import GeneralModel
+from utils.constants import *
 from utils.model_utils import save_models
 from utils.system_utils import setup_directories, save_codebase_of_run
-
-from datetime import datetime
 
 
 class Trainer:
 
     def __init__(self,
-                 data_loader,
-                 model,
-                 optimizer,
-                 loss_function,
-                 args
+                 data_loader_train: DataLoader,
+                 data_loader_validation: DataLoader,
+                 model: GeneralModel,
+                 optimizer: Optimizer,
+                 loss_function: GeneralModel,
+                 args: argparse.Namespace
                  ):
 
         self.arguments = args
         self.loss_function = loss_function
         self.optimizer = optimizer
         self.model = model
-        self.data_loader = data_loader
+        self.data_loader_validation = data_loader_validation
+        self.data_loader_train = data_loader_train
+
+        # validate input to class
+        self._validate_self()
 
         # init current runs timestamp
         DATA_MANAGER.set_date_stamp()
@@ -34,13 +42,15 @@ class Trainer:
         self.writer = SummaryWriter(
             f"{GITIGNORED_DIR}/{RESULTS_DIR}/{DATA_MANAGER.stamp}/{SUMMARY_DIR}/")
 
-        # todo: check input on nulls
 
-    def train(self):
+    def _validate_self(self):
+        raise NotImplementedError
+        # todo: validate all self-fields on nulls and correct types and filling
+        pass
+
+    def train(self) -> bool:
         """
          main training function
-
-        :return:
         """
 
         # setup data output directories:
@@ -54,7 +64,7 @@ class Trainer:
 
         try:
 
-            print(f"{PRINTCOLOR_BOLD}Started training with the following config:{PRINTCOLOR_END}\n{self.arguments}")
+            print(f"{PRINTCOLOR_BOLD}Started training with the following config:{PRINTCOLOR_END}\n{self.arguments}\n\n")
 
             # run
             for epoch in range(self.arguments.epochs):
@@ -65,15 +75,16 @@ class Trainer:
                 # do epoch
                 epoch_progress = self._epoch_iteration(epoch)
 
-                # add progress-list to progress
+                # add progress-list to global progress-list
                 progress += epoch_progress
 
                 # write progress to pickle file (overwrite because there is no point keeping seperate versions)
-                DATA_MANAGER.save_python_obj(progress, f"{RESULTS_DIR}/{DATA_MANAGER.stamp}/{PROGRESS_DIR}/progress_list",
+                DATA_MANAGER.save_python_obj(progress,
+                                             f"{RESULTS_DIR}/{DATA_MANAGER.stamp}/{PROGRESS_DIR}/progress_list",
                                              print_success=False)
 
                 # write models if needed (don't save the first one
-                if (((epoch + 1) % self.arguments.saving_freq) == 0):
+                if ((epoch + 1) % self.arguments.saving_freq) == 0:
                     save_models([self.model], f"Models_at_epoch_{epoch}")
 
                 # flush prints
@@ -97,27 +108,26 @@ class Trainer:
 
     def _epoch_iteration(self, epoch_num: int) -> List:
         """
-                one epoch implementation
-
-                """
+        one epoch implementation
+        """
 
         progress = []
 
-        for i, batch in enumerate(self.data_loader):
+        for i, batch in enumerate(self.data_loader_train):
 
             # do forward pass and whatnot on batch
             loss_batch, accuracy_batch = self._batch_iteration(batch)
 
-            # add to list somehow: todo: make statistic class
+            # add to list somehow: todo: make statistic class?
             progress.append({"loss": loss_batch, "acc": accuracy_batch})
 
             # calculate amount of batches passed
-            batches_passed = i + (epoch_num * len(self.data_loader))
+            batches_passed = i + (epoch_num * len(self.data_loader_train))
 
-            # print progress to terminal
-            if (batches_passed % self.arguments.eval_freq == 0):
-                pass
-                # todo
+            # run on validation set and print progress to terminal
+            if (batches_passed % self.arguments.eval_freq == 0):  # todo
+                loss_validation, acc_validation = self._evaluate()
+                self._log(loss_validation, acc_validation)
 
             # check if runtime is expired
             time_passed = datetime.now() - DATA_MANAGER.actual_date
@@ -128,12 +138,42 @@ class Trainer:
 
         return progress
 
-    def _batch_iteration(self, batch):
+    def _batch_iteration(self,
+                         batch: torch.Tensor,
+                         train_mode: bool = True) -> Tuple[float, float]:
+        """
+        runs forward pass on batch and backward pass if in train_mode
+        """
+
+        if train_mode:
+            self.model.train()
+        else:
+            self.model.eval()
 
         output = self.model.forward(batch)
 
         loss = self.loss_function.forward(output)
 
-        # etc
+        # backward call etc
+
+        raise NotImplementedError
 
         return None, None  # todo
+
+    def _evaluate(self) -> Tuple[float, float]:
+        """
+        runs iteration on validation set
+        """
+
+        raise NotImplementedError
+        return None, None  # todo
+
+    def _log(self,
+             loss_validation: float,
+             acc_validation: float):
+        """
+        logs progress to user through tensorboard and terminal
+        """
+
+        raise NotImplementedError
+        pass  # todo

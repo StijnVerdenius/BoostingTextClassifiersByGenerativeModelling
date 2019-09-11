@@ -6,6 +6,8 @@ OUTPUT_DIR = "output"
 RESULTS_DIR = "results"
 MODELS_DIR = "models"
 PROGRESS_DIR = "progress"
+DATA_DIR = "data"
+
 
 PROJ_NAME = "DL4NLP"
 GITIGNORED_DIR = "local_data"
@@ -25,7 +27,13 @@ PRINTCOLOR_RED = '\033[91m'
 PRINTCOLOR_BOLD = '\033[1m'
 PRINTCOLOR_UNDERLINE = '\033[4m'
 PRINTCOLOR_END = '\033[0m'
+
 LOSS_DIR = "losses"
 CLASS_DIR = "classifiers"
 GEN_DIR = "generators"
 OPTIMS = "optim"
+LOADERS = "dataloaders"
+
+TEST_SET = "test"
+VALIDATION_SET = "validation"
+TRAIN_SET = "train"
