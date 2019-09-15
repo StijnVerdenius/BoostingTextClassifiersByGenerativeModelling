@@ -47,10 +47,13 @@ class CheckDataLoader(Dataset):
         print('Number of unique characters (vocabulary):', len(vocabulary))
         print(vocabulary)
 
+        #TODO convert self.data to one-hot
+
     def __len__(self):
         return len(self.data)
 
     def __getitem__(self, item):
         # item im hoping is an integer to index
-
+        #TODO this is not complete,
+        #TODO it will index the list then convert it to torch tensor
         return {'data': self.data[item], 'label': self.labels[item]}  # not sure if this works
