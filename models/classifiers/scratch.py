@@ -1,7 +1,6 @@
 import pandas as pd
 import os
 import numpy as np
-from sklearn import preprocessing
 
 def rewrite_labels(labels):
     """
@@ -25,27 +24,57 @@ def rewrite_labels(labels):
     return new_labels
 
 def fix_phrase_len(data, max_chars=50):
-    new_data = []
-    for sentence in data:
+    new_data = list()
+    for phrase in data:
         # check sentence length
-        char_count = len(sentence)
+        char_count = len(phrase)
         # truncate if sentence is too long
         if char_count > max_chars:
-            new_sentence = sentence[:max_chars]
-            new_data.append(new_sentence)
+            new_phrase = phrase[:max_chars]
+            new_data.append(new_phrase)
         # add padding if sentence is too short
         elif char_count < max_chars:
             padding_len = max_chars - char_count
-            new_sentence = len(sentence) + padding_len
-            new_data.append(new_sentence)
+            new_phrase = phrase + ' ' * padding_len
+            new_data.append(new_phrase)
+
     new_data = np.asarray(new_data)
     return new_data
 
 def create_vocab(data):
+    # function goes through all data, and returns dict of unique_char:charID
+    # will be used later to make one-hot vec encodings
     flattened = [d for sublist in data for d in sublist]
-    vocabulary = sorted(set(flattened))
-    char_to_int = dict((c, i) for i, c in enumerate(vocabulary))
-    return vocabulary, char_to_int
+    unique_chars_list = sorted(set(flattened))
+    vocabulary = dict((c, i) for i, c in enumerate(unique_chars_list))
+    return vocabulary
+
+def encode_data(data, vocabulary, max_chars=50):
+    encoded_data = list()
+
+    for phrase in data:
+        one_hot_vecs = list()
+
+        # converting each phrase in our dataset into a list of chars
+        chars = list(phrase)
+        encoded_chars = [vocabulary[char] for char in chars]
+
+        # create one hot vec of vocab len N
+        # use charID to mark non-zero index
+        for value in encoded_chars:
+            letter = [0 for _ in range(len(vocabulary.keys()))]
+            letter[value] = 1
+            one_hot_vecs.append(np.asarray(letter))
+
+        encoded_phrase = np.stack(one_hot_vecs, axis=1)
+        encoded_data.append(encoded_phrase)
+
+    # shape data set
+    encoded_data = np.stack(encoded_data, axis=2)
+    return encoded_data
+
+
+
 # hackey way to force Pycharm to be in intended root folder
 os.chdir('../..')
 
@@ -65,35 +94,19 @@ labels = np.array(df.Category)
 # convert string labels into int labels
 labels = rewrite_labels(labels)
 # fix phrase length
-max_chars = 100
+max_chars = 50
 data = fix_phrase_len(data, max_chars)
 
 # one-hot encodings
-# creating a dictionary of all unique chars in our vocab
-vocabulary, char_to_int = create_vocab(data)
-
-# flattened = [d for sublist in data for d in sublist]
-# vocabulary = sorted(set(flattened))
-# char_to_int = dict((c, i) for i, c in enumerate(vocabulary))
+# creating a dictionary of {unique char: charID}
+vocabulary = create_vocab(data)
+# return matrix of      unique_chars by max_chars by total_phrases_num
+encoded_data = encode_data(data, vocabulary, max_chars)
 
 
-# TODO: clean up code
-encoded_data = list()
-for phrase in data:
-    one_hot_vecs = list()
-    # converting each phrase in our dataset into a list of chars
-    words = phrase.split()
-    for word in words:
-        chars = list(word)
-        # creating a list of charIDs (using char_to_int dictionary)
-        encoded_chars = [char_to_int[char] for char in chars]
-        # create one hot vec of vocab len N
-        # use charID to mark non-zero index
-        for value in encoded_chars:
-            letter = [0 for _ in range(len(vocabulary))]
-            letter[value] = 1
-            one_hot_vecs.append(letter)
-    encoded_data.append(one_hot_vecs)
+
+
+
 
 
 
