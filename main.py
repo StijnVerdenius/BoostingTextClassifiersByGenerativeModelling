@@ -18,7 +18,10 @@ def main(arguments: argparse.Namespace):
     # get model from models-folder (name of class has to be identical to filename)
     model = find_right_model((CLASS_DIR if arguments.train_classifier else GEN_DIR),
                              (arguments.classifier if arguments.train_classifier else arguments.generator),
-                             some_param="example_value")
+                             some_param="example_value",
+                             vocabulary_size=3,  # ipek added (not deleting bcuz as far as i understand,
+                                                 # doesnt affect anything (if u dont have same named args I guess)
+                             num_classes=2)  # ipek added, (show me a better way to do this :D
 
     # if we are in train mode..
     if arguments.train_mode:
