@@ -1,5 +1,9 @@
 import torch
-torch.cuda.current_device()
+
+try:
+    torch.cuda.current_device()
+except:
+    pass
 
 import argparse
 import os
