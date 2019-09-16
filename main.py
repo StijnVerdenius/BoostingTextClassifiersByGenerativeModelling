@@ -19,10 +19,8 @@ def main(arguments: argparse.Namespace):
     model = find_right_model((CLASS_DIR if arguments.train_classifier else GEN_DIR),
                              (arguments.classifier if arguments.train_classifier else arguments.generator),
                              some_param="example_value",
-                             vocabulary_size=3,  # ipek added (not deleting bcuz as far as i understand,
-                                                 # doesnt affect anything (if u dont have same named args I guess)
-                             num_classes=2)  # ipek added, (show me a better way to do this :D
-
+                             vocabulary_size=arguments.vocab_size,
+                             num_classes=2)
     # if we are in train mode..
     if arguments.train_mode:
 
@@ -45,6 +43,7 @@ def main(arguments: argparse.Namespace):
         tester = Tester()
         raise NotImplementedError
         pass  # todo: testing functionality, loading pretrained model
+
 
 
 def load_data_set(arguments: argparse.Namespace,
@@ -83,6 +82,7 @@ def parse() -> argparse.Namespace:
     parser.add_argument('--train_classifier', default=True, type=bool, help='train a classifier')
 
     # todo: add whatever you like
+    parser.add_argument('--vocab_size', default=106, type=int, help='vocab/embedding size')
 
     return parser.parse_args()
 

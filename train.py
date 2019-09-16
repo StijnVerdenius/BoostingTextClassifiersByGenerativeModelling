@@ -40,11 +40,10 @@ class Trainer:
 
         # initialize tensorboardx
         self.writer = SummaryWriter(
-            f"{GITIGNORED_DIR}/{RESULTS_DIR}/{DATA_MANAGER.stamp}/{SUMMARY_DIR}/")
-
+            f"{GITIGNORED_DIR}/{RESULTS_DIR}/{DATA_MANAGER.stamp.replace(':', '.')}/{SUMMARY_DIR}/")
 
     def _validate_self(self):
-        raise NotImplementedError
+        # raise NotImplementedError
         # todo: validate all self-fields on nulls and correct types and filling
         pass
 
@@ -150,11 +149,14 @@ class Trainer:
         else:
             self.model.eval()
 
-        output = self.model.forward(batch)
-
-        loss = self.loss_function.forward(output)
-
-        # backward call etc
+        print('IMHERE', batch[0].shape)
+        batch_data, target = batch[0], batch[1]
+        output = self.model.forward(batch_data)
+        if 'LSTM' in type(self.model).__name__:
+            output, (_, _) = output
+        print('Output', output)
+        loss = self.loss_function.forward((output, target))
+        print('Loss', loss)
 
         raise NotImplementedError
 

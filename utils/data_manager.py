@@ -85,7 +85,7 @@ class DataManager:
             raise Exception("Attempting to reset datestamp, but it was already set")
 
         self.actual_date = datetime.now()
-        self.stamp = str(self.actual_date).split(".")[0].replace(" ", "_")
+        self.stamp = str(self.actual_date).split(".")[0].replace(" ", "_").replace(':', '.')
         print(f"Made datestamp: {self.stamp}")
         return self.stamp
 
