@@ -63,7 +63,7 @@ for genre in genres:
     if len(song_entries_by_genre[genre]) < songs_limit:
         del song_entries_by_genre[genre]
     else:
-        song_entries_by_genre[genre] = song_entries_by_genre[genre][:songs_limit]
+        song_entries_by_genre[genre] = song_entries_by_genre[genre][:100]
 
 train_data, validation_data, test_data = {}, {}, {}
 
