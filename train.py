@@ -1,5 +1,6 @@
 import argparse
 import sys
+import os
 from datetime import datetime
 from typing import List, Tuple
 
@@ -39,12 +40,11 @@ class Trainer:
         DATA_MANAGER.set_date_stamp()
 
         # initialize tensorboardx
-        self.writer = SummaryWriter(
-            f"{GITIGNORED_DIR}/{RESULTS_DIR}/{DATA_MANAGER.stamp}/{SUMMARY_DIR}/")
+        self.writer = SummaryWriter(os.path.join(GITIGNORED_DIR, RESULTS_DIR, DATA_MANAGER.stamp, SUMMARY_DIR))
 
 
     def _validate_self(self):
-        raise NotImplementedError
+        # raise NotImplementedError
         # todo: validate all self-fields on nulls and correct types and filling
         pass
 
@@ -80,7 +80,7 @@ class Trainer:
 
                 # write progress to pickle file (overwrite because there is no point keeping seperate versions)
                 DATA_MANAGER.save_python_obj(progress,
-                                             f"{RESULTS_DIR}/{DATA_MANAGER.stamp}/{PROGRESS_DIR}/progress_list",
+                                             os.path.join(RESULTS_DIR, DATA_MANAGER.stamp, PROGRESS_DIR, "progress_list"),
                                              print_success=False)
 
                 # write models if needed (don't save the first one
@@ -156,7 +156,7 @@ class Trainer:
 
         # backward call etc
 
-        raise NotImplementedError
+        # raise NotImplementedError
 
         return None, None  # todo
 
@@ -165,7 +165,7 @@ class Trainer:
         runs iteration on validation set
         """
 
-        raise NotImplementedError
+        # raise NotImplementedError
         return None, None  # todo
 
     def _log(self,
@@ -175,5 +175,5 @@ class Trainer:
         logs progress to user through tensorboard and terminal
         """
 
-        raise NotImplementedError
+        # raise NotImplementedError
         pass  # todo

@@ -18,7 +18,8 @@ class DataManager:
         """ Saves python object to disk in pickle """
 
         try:
-            with open(self.directory + name + ".pickle", 'wb') as handle:
+            filepath = os.path.join(self.directory, f'{name}.pickle')
+            with open(filepath, 'wb') as handle:
                 pickle.dump(obj, handle, protocol=-1)
 
                 if (print_success):
@@ -90,4 +91,4 @@ class DataManager:
         return self.stamp
 
     def create_dir(self, name):
-        os.makedirs(self.directory + name, exist_ok=True)
+        os.makedirs(os.path.join(self.directory, name), exist_ok=True)

@@ -1,4 +1,5 @@
 from utils.data_manager import DataManager
+import os
 
 CODEBASE_DIR = "codebase"
 SUMMARY_DIR = "summary"
@@ -12,7 +13,7 @@ DATA_DIR = "data"
 PROJ_NAME = "DL4NLP"
 GITIGNORED_DIR = "local_data"
 
-DATA_MANAGER = DataManager(f"./{GITIGNORED_DIR}/")
+DATA_MANAGER = DataManager(os.path.join(".", GITIGNORED_DIR))
 
 OUTPUT_DIRS = [OUTPUT_DIR, SUMMARY_DIR, CODEBASE_DIR, MODELS_DIR, PROGRESS_DIR]
 
