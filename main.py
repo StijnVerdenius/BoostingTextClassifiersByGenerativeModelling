@@ -1,7 +1,5 @@
 import torch
 
-torch.cuda.current_device()
-
 import argparse
 import os
 import sys
@@ -79,9 +77,9 @@ def parse() -> argparse.Namespace:
     parser.add_argument('--learning_rate', default=1e-4, type=float, help='learning rate')
 
     # string
-    parser.add_argument('--classifier', default="DummyClassifier", type=str, help='classifier model name')
+    parser.add_argument('--classifier', default="LSTMClassifier", type=str, help='classifier model name')
     parser.add_argument('--generator', default="DummyGenerator", type=str, help='generator model name')
-    parser.add_argument('--loss', default="DummyLoss", type=str, help='loss-function model name')
+    parser.add_argument('--loss', default="CrossEntropyLoss", type=str, help='loss-function model name')
     parser.add_argument('--optimizer', default="Adam", type=str, help='optimizer model name')
     parser.add_argument('--data_file', default="data.file", type=str, help='data file name')
     parser.add_argument('--data_class', default="DummyDataLoader", type=str, help='dataloader model name')
