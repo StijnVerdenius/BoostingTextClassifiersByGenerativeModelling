@@ -34,7 +34,8 @@ class DataManager:
 
         obj = None
         try:
-            with (open(self.directory + name + ".pickle", "rb")) as openfile:
+            filepath = os.path.join(self.directory, f'{name}.pickle')
+            with (open(filepath, "rb")) as openfile:
                 obj = pickle.load(openfile)
         except FileNotFoundError:
             print("{} not loaded because file is missing".format(name))

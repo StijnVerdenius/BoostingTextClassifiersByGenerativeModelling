@@ -9,8 +9,7 @@ from models.GeneralModel import GeneralModel
 class LSTMClassifier(GeneralModel):
 
     def __init__(self,
-                 vocabulary_size,
-                 num_classes,
+                 num_classes=10,
                  lstm_num_layers=2,
                  lstm_num_hidden=256,
                  dropout=0.0,
@@ -24,7 +23,7 @@ class LSTMClassifier(GeneralModel):
         self.lstm_num_hidden = lstm_num_hidden
         self.num_classes = num_classes
         self.device = device
-        self.model = nn.LSTM(input_size=vocabulary_size, hidden_size=lstm_num_hidden,
+        self.model = nn.LSTM(input_size=n_channels_in, hidden_size=lstm_num_hidden,
                              num_layers=lstm_num_layers, dropout=dropout, batch_first=batch_first)
 
         self.output_layer = nn.Linear(lstm_num_hidden, num_classes,

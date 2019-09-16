@@ -36,7 +36,7 @@ LOSS_DIR = "losses"
 CLASS_DIR = "classifiers"
 GEN_DIR = "generators"
 OPTIMS = "optim"
-LOADERS = "dataloaders"
+DATASETS = "datasets"
 
 TEST_SET = "test"
 VALIDATION_SET = "validation"
