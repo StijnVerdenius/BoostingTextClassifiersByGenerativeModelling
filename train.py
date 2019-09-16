@@ -10,7 +10,7 @@ from torch.utils.data import DataLoader
 
 from models import GeneralModel
 from utils.constants import *
-from utils.model_utils import save_models, calculate_accuracy
+from utils.model_utils import save_models, calculate_accuracy, delete_list
 from utils.system_utils import setup_directories, save_codebase_of_run
 
 
@@ -123,7 +123,7 @@ class Trainer:
             # calculate amount of batches and walltime passed
             batches_passed = i + (epoch_num * len(self.data_loader_train))
             time_passed = datetime.now() - DATA_MANAGER.actual_date
-            print('train accu', accuracy_batch)
+
             # run on validation set and print progress to terminal
             if (batches_passed % self.arguments.eval_freq) == 0:  # todo
                 loss_validation, acc_validation = self._evaluate()
@@ -165,6 +165,8 @@ class Trainer:
         if self.arguments.train_classifier:
             accuracy = calculate_accuracy(targets, *output).item()
 
+        delete_list([output, batch, targets])
+
         return loss.item(), accuracy
 
     def _evaluate(self) -> Tuple[float, float]:
@@ -194,11 +196,10 @@ class Trainer:
         """
         logs progress to user through tensorboard and terminal
         """
-
         self.writer.add_scalar("Accuracy_validation", acc_validation, batches_done, time_passed)
         self.writer.add_scalar("Loss_validation", loss_validation, batches_done, time_passed)
         self.writer.add_scalar("Loss_train", loss_train, batches_done, time_passed)
         self.writer.add_scalar("Accuracy_train", acc_train, batches_done, time_passed)
+        print(f"Accuracy_validation: {acc_validation}, Loss_validation: {loss_validation}, Accuracy_train: {acc_train}, Loss_train: {loss_train}")
 
-        print(f"{PRINTCOLOR_UNDERLINE}Accuracy_validation{PRINTCOLOR_END}: {acc_validation}, {PRINTCOLOR_UNDERLINE}Loss_validation{PRINTCOLOR_END}: {loss_validation}, {PRINTCOLOR_UNDERLINE}Accuracy_train{PRINTCOLOR_END}: {acc_train}, {PRINTCOLOR_UNDERLINE}Loss_train{PRINTCOLOR_END}: {loss_train} \r", end='')
 

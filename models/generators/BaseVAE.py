@@ -25,6 +25,7 @@ class Encoder(nn.Module):
         self.layer_sig = nn.Linear(hidden_dim, z_dim).to(device)
 
     def forward(self, x):
+        x = x.float()
         lstm_output = self.lstm.forward(x)[0]
         shared = self.layers.forward(lstm_output)
 

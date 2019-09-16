@@ -11,7 +11,7 @@ class LSTMClassifier(GeneralModel):
     def __init__(self,
                  num_classes=10,
                  lstm_num_layers=2,
-                 lstm_num_hidden=256,
+                 hidden_dim=256,
                  dropout=0.0,
                  batch_first=False,
                  n_channels_in=(0),
@@ -20,13 +20,13 @@ class LSTMClassifier(GeneralModel):
         super(LSTMClassifier, self).__init__(n_channels_in, device, **kwargs)
 
         self.lstm_num_layers = lstm_num_layers
-        self.lstm_num_hidden = lstm_num_hidden
+        self.lstm_num_hidden = hidden_dim
         self.num_classes = num_classes
         self.device = device
-        self.model = nn.LSTM(input_size=n_channels_in, hidden_size=lstm_num_hidden,
+        self.model = nn.LSTM(input_size=n_channels_in, hidden_size=hidden_dim,
                              num_layers=lstm_num_layers, dropout=dropout, batch_first=batch_first)
 
-        self.output_layer = nn.Linear(lstm_num_hidden, num_classes,
+        self.output_layer = nn.Linear(hidden_dim, num_classes,
                                       bias=True)
 
     def forward(self, x, h0=None, c0=None):

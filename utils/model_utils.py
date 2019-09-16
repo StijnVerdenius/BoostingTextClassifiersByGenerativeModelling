@@ -37,6 +37,13 @@ def find_right_model(type: str, name: str, **kwargs):
 
     return models[type][name](**kwargs)
 
+def detach_list(items):
+    for i, x in enumerate(items):
+        items[i] = x.detach()
+
+def delete_list(items):
+    for i, x in enumerate(items):
+        del items[i], x
 
 def save_models(models: List[nn.Module],
                 suffix: str):
@@ -56,4 +63,4 @@ _read_all_class_names()
 def calculate_accuracy(targets, output, *ignored):
     probabilities = output.log_softmax(dim=-1)
     _, classifications = probabilities.detach().max(dim=-1)
-    return (targets.cpu().eq(classifications)).float().mean()
+    return (targets.eq(classifications)).float().mean()

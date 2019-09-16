@@ -10,6 +10,7 @@ class CrossEntropyLoss(GeneralModel):
         self.loss = nn.CrossEntropyLoss().to(device)
 
     def forward(self, target, out_data):
+
         # out_data = out_data.permute([1, 0, -1])
 
         # # todo delete after checking w dummy spam data
@@ -21,4 +22,4 @@ class CrossEntropyLoss(GeneralModel):
         # print(out_data)
         # print(target_onehot.shape)
         # print(target_onehot)
-        return self.loss(out_data, target.cpu())
+        return self.loss(out_data.to(self.device), target.to(self.device))
