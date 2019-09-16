@@ -31,7 +31,18 @@ def main(arguments: argparse.Namespace):
     model.to(DEVICE)
 
     # if we are in train mode..
-    if arguments.train_mode:
+    if arguments.test_mode:
+        # we are in test mode
+        data_loader_test = load_data_set(arguments, TEST_SET)
+
+        for _, item in enumerate(data_loader_test):
+            print(item[1])
+            break
+
+        tester = Tester()
+        raise NotImplementedError
+        pass  # todo: testing functionality, loading pretrained model
+    else:
 
         # load needed data
         data_loader_train = load_data_set(arguments, TRAIN_SET)
@@ -45,20 +56,12 @@ def main(arguments: argparse.Namespace):
         trainer = Trainer(data_loader_train, data_loader_validation, model, optimizer, loss_function, arguments)
         trainer.train()
 
-    else:
-        # we are in test mode
-        data_loader_test = load_data_set(arguments, TEST_SET)
-
-        tester = Tester()
-        raise NotImplementedError
-        pass  # todo: testing functionality, loading pre-trained model
-
 
 def load_data_set(arguments: argparse.Namespace,
                   set_name: str) -> DataLoader:
     """ loads specific dataset as a DataLoader """
 
-    dataset = find_right_model(DATASETS, arguments.dataset_class, file=arguments.data_folder, set_name=set_name)
+    dataset = find_right_model(DATASETS, arguments.dataset_class, folder=arguments.data_folder, set_name=set_name)
     loader = DataLoader(dataset, shuffle=(set_name is TRAIN_SET), batch_size=arguments.batch_size)
     # todo: revisit and validation checks
     return loader
@@ -90,12 +93,12 @@ def parse() -> argparse.Namespace:
     parser.add_argument('--loss', default="CrossEntropyLoss", type=str, help='loss-function model name')
     parser.add_argument('--optimizer', default="Adam", type=str, help='optimizer model name')
     parser.add_argument('--data_folder', default=os.path.join('local_data', 'data'), type=str, help='data folder path')
-    parser.add_argument('--dataset_class', default="CheckDataLoader", type=str, help='dataset name')
+    parser.add_argument('--dataset_class', default="LyricsDataset", type=str, help='dataset name')
     parser.add_argument('--run_name', default="", type=str, help='extra identification for run')
 
     # bool
-    parser.add_argument('--train_mode', default=True, type=bool, help='start in train_mode')
-    parser.add_argument('--train_classifier', default=True, type=bool, help='train a classifier')
+    parser.add_argument('--test-mode', action='store_true', help='start in train_mode')
+    parser.add_argument('--train-classifier', action='store_true', help='train a classifier')
 
     # todo: add whatever you like
 

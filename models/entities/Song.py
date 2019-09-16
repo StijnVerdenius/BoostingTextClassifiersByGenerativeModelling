@@ -17,6 +17,10 @@ class Song():
         self._lyrics = parsed_lyrics
         self._start_index = start_index
 
+    def __str__(self):
+        result = f'Song:\n - Genre: "{self.genre}"\n - Start index: "{self.start_index}"\n - Number of lines: "{self.number_of_lines}"'
+        return result
+
     @property
     def genre(self) -> str:
         return self._genre
