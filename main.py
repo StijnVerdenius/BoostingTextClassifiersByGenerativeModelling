@@ -25,8 +25,10 @@ def main(arguments: argparse.Namespace):
                              n_channels_in=arguments.embedding_size,
                              num_classes=arguments.num_classes,
                              hidden_dim=arguments.hidden_dim,
-                             z_dim=arguments.z_dim
+                             z_dim=arguments.z_dim,
+                             device=DEVICE
                              )
+    model.to(DEVICE)
 
     # if we are in train mode..
     if arguments.train_mode:
@@ -37,7 +39,7 @@ def main(arguments: argparse.Namespace):
 
         # get optimizer and loss function
         optimizer = find_right_model(OPTIMS, arguments.optimizer, params=model.parameters(), lr=arguments.learning_rate)
-        loss_function = find_right_model(LOSS_DIR, arguments.loss, some_param="example")
+        loss_function = find_right_model(LOSS_DIR, arguments.loss, some_param="example").to(DEVICE)
 
         # train
         trainer = Trainer(data_loader_train, data_loader_validation, model, optimizer, loss_function, arguments)

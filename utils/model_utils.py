@@ -37,6 +37,13 @@ def find_right_model(type: str, name: str, **kwargs):
 
     return models[type][name](**kwargs)
 
+def detach_list(items):
+    for i, x in enumerate(items):
+        items[i] = x.detach()
+
+def delete_list(items):
+    for i, x in enumerate(items):
+        del items[i], x
 
 def save_models(models: List[nn.Module],
                 suffix: str):

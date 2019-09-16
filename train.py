@@ -10,7 +10,7 @@ from torch.utils.data import DataLoader
 
 from models import GeneralModel
 from utils.constants import *
-from utils.model_utils import save_models, calculate_accuracy
+from utils.model_utils import save_models, calculate_accuracy, delete_list
 from utils.system_utils import setup_directories, save_codebase_of_run
 
 
@@ -163,6 +163,8 @@ class Trainer:
         accuracy = 0
         if self.arguments.train_classifier:
             accuracy = calculate_accuracy(targets, *output).item()
+
+        delete_list([output, batch, targets])
 
         return loss.item(), accuracy
 
