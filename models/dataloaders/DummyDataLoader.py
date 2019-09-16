@@ -9,7 +9,7 @@ class DummyDataLoader(Dataset):
         print(file, set_name)
 
     def __len__(self):
-        return 315535445
+        return 3150
 
     def __getitem__(self, item):
-        return torch.randn((2,3)), torch.randn((2,3))
+        return torch.randn((2,100)), torch.randn((100))

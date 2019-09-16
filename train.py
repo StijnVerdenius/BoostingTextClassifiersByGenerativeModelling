@@ -127,7 +127,7 @@ class Trainer:
             # run on validation set and print progress to terminal
             if (batches_passed % self.arguments.eval_freq) == 0:  # todo
                 loss_validation, acc_validation = self._evaluate()
-                self._log(loss_validation, acc_validation, loss_batch, accuracy_batch, batches_passed, float(time_passed))
+                self._log(loss_validation, acc_validation, loss_batch, accuracy_batch, batches_passed, float(time_passed.microseconds))
 
             # check if runtime is expired
             if (time_passed.total_seconds() > (self.arguments.max_training_minutes * 60)) \
