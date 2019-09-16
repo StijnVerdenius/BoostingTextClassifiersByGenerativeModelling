@@ -1,8 +1,10 @@
+import torch
+
+torch.cuda.current_device()
+
 import argparse
 import os
 import sys
-
-import torch
 from torch.utils.data import DataLoader
 
 from test import Tester
@@ -19,6 +21,7 @@ def main(arguments: argparse.Namespace):
     model = find_right_model((CLASS_DIR if arguments.train_classifier else GEN_DIR),
                              (arguments.classifier if arguments.train_classifier else arguments.generator),
                              n_channels_in=arguments.embedding_size,
+                             num_classes=arguments.num_classes,
                              )
 
     # if we are in train mode..
@@ -66,6 +69,7 @@ def parse() -> argparse.Namespace:
     parser.add_argument('--saving_freq', default=50, type=int, help='save every x epochs')
     parser.add_argument('--batch_size', default=128, type=int, help='size of batches')
     parser.add_argument('--embedding_size', default=100, type=int, help='size of embeddings') # todo
+    parser.add_argument('--num_classes', default=10, type=int, help='size of embeddings') # todo
     # parser.add_argument('--hidden_size', default=100, type=int, help='size of batches')
     # parser.add_argument('--z_size', default=100, type=int, help='size of batches')
     parser.add_argument('--max_training_minutes', default=24 * 60, type=int,
@@ -76,8 +80,8 @@ def parse() -> argparse.Namespace:
 
     # string
     parser.add_argument('--classifier', default="DummyClassifier", type=str, help='classifier model name')
-    parser.add_argument('--generator', default="BaseVAE", type=str, help='generator model name')
-    parser.add_argument('--loss', default="ELBO", type=str, help='loss-function model name')
+    parser.add_argument('--generator', default="DummyGenerator", type=str, help='generator model name')
+    parser.add_argument('--loss', default="DummyLoss", type=str, help='loss-function model name')
     parser.add_argument('--optimizer', default="Adam", type=str, help='optimizer model name')
     parser.add_argument('--data_file', default="data.file", type=str, help='data file name')
     parser.add_argument('--data_class', default="DummyDataLoader", type=str, help='dataloader model name')
@@ -85,7 +89,7 @@ def parse() -> argparse.Namespace:
 
     # bool
     parser.add_argument('--train_mode', default=True, type=bool, help='start in train_mode')
-    parser.add_argument('--train_classifier', default=False, type=bool, help='train a classifier')
+    parser.add_argument('--train_classifier', default=True, type=bool, help='train a classifier')
 
     # todo: add whatever you like
 

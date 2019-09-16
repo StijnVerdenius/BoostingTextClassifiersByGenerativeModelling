@@ -154,7 +154,6 @@ class Trainer:
             self.model.eval()
 
         output = self.model.forward(batch)
-
         loss = self.loss_function.forward(targets, *output)
 
         if train_mode:
