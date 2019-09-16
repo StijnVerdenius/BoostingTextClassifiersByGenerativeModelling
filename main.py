@@ -6,7 +6,6 @@ except:
     pass
 
 import argparse
-import os
 import sys
 from torch.utils.data import DataLoader
 
@@ -25,6 +24,8 @@ def main(arguments: argparse.Namespace):
                              (arguments.classifier if arguments.train_classifier else arguments.generator),
                              n_channels_in=arguments.embedding_size,
                              num_classes=arguments.num_classes,
+                             hidden_dim=arguments.hidden_dim,
+                             z_dim=arguments.z_dim
                              )
 
     # if we are in train mode..
@@ -71,10 +72,10 @@ def parse() -> argparse.Namespace:
     parser.add_argument('--eval_freq', default=20, type=int, help='evaluate every x batches')
     parser.add_argument('--saving_freq', default=50, type=int, help='save every x epochs')
     parser.add_argument('--batch_size', default=128, type=int, help='size of batches')
-    parser.add_argument('--embedding_size', default=106, type=int, help='size of embeddings') # todo
-    parser.add_argument('--num_classes', default=2, type=int, help='size of embeddings') # todo
-    # parser.add_argument('--hidden_size', default=100, type=int, help='size of batches')
-    # parser.add_argument('--z_size', default=100, type=int, help='size of batches')
+    parser.add_argument('--embedding_size', default=106, type=int, help='size of embeddings')  # todo
+    parser.add_argument('--num_classes', default=2, type=int, help='size of embeddings')  # todo
+    parser.add_argument('--hidden_dim', default=100, type=int, help='size of batches')
+    parser.add_argument('--z_dim', default=100, type=int, help='size of batches')
     parser.add_argument('--max_training_minutes', default=24 * 60, type=int,
                         help='max mins of training be4 save-and-kill')
 
@@ -84,7 +85,7 @@ def parse() -> argparse.Namespace:
     # string
     parser.add_argument('--classifier', default="LSTMClassifier", type=str, help='classifier model name')
     parser.add_argument('--generator', default="BaseVAE", type=str, help='generator model name')
-    parser.add_argument('--loss', default="ELBO", type=str, help='loss-function model name')
+    parser.add_argument('--loss', default="CrossEntropyLoss", type=str, help='loss-function model name')
     parser.add_argument('--optimizer', default="Adam", type=str, help='optimizer model name')
     parser.add_argument('--data_folder', default=os.path.join('local_data', 'data'), type=str, help='data folder path')
     parser.add_argument('--dataset_class', default="CheckDataLoader", type=str, help='dataset name')
@@ -92,7 +93,7 @@ def parse() -> argparse.Namespace:
 
     # bool
     parser.add_argument('--train_mode', default=True, type=bool, help='start in train_mode')
-    parser.add_argument('--train_classifier', default=False, type=bool, help='train a classifier')
+    parser.add_argument('--train_classifier', default=True, type=bool, help='train a classifier')
 
     # todo: add whatever you like
 
