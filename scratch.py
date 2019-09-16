@@ -1,6 +1,7 @@
 import pandas as pd
 import os
 import numpy as np
+import torch
 
 def rewrite_labels(labels):
     """
@@ -20,7 +21,6 @@ def rewrite_labels(labels):
             new_labels.append(0)
 
     new_labels = np.asarray(new_labels)
-
     return new_labels
 
 def fix_phrase_len(data, max_chars=50):
@@ -37,6 +37,8 @@ def fix_phrase_len(data, max_chars=50):
             padding_len = max_chars - char_count
             new_phrase = phrase + ' ' * padding_len
             new_data.append(new_phrase)
+        else:
+            new_data.append(phrase)
 
     new_data = np.asarray(new_data)
     return new_data
@@ -49,7 +51,7 @@ def create_vocab(data):
     vocabulary = dict((c, i) for i, c in enumerate(unique_chars_list))
     return vocabulary
 
-def encode_data(data, vocabulary, max_chars=50):
+def encode_data(data, vocabulary):
     encoded_data = list()
 
     for phrase in data:
@@ -71,6 +73,7 @@ def encode_data(data, vocabulary, max_chars=50):
 
     # shape data set
     encoded_data = np.stack(encoded_data, axis=2)
+    print(encoded_data.shape)
     return encoded_data
 
 
@@ -86,6 +89,7 @@ df = pd.read_csv('local_data/data/spam_dataset.csv')
 df.info()
 # get info from pandas dataframe as np array
 data = np.array(df.Message)
+print('original data', data.shape)
 labels = np.array(df.Category)
 
 # ===================================
@@ -101,8 +105,18 @@ data = fix_phrase_len(data, max_chars)
 # creating a dictionary of {unique char: charID}
 vocabulary = create_vocab(data)
 # return matrix of      unique_chars by max_chars by total_phrases_num
-encoded_data = encode_data(data, vocabulary, max_chars)
+encoded_data = encode_data(data, vocabulary)
 
+
+# convert to torch tensors
+encoded_data = torch.from_numpy(encoded_data)
+labels = torch.from_numpy(labels)
+
+#================================
+#          Sanity Checks
+#================================
+print('labels', labels.size())
+print('data', encoded_data.size())
 
 
 
