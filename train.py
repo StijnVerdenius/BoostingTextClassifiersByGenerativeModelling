@@ -123,11 +123,12 @@ class Trainer:
             # calculate amount of batches and walltime passed
             batches_passed = i + (epoch_num * len(self.data_loader_train))
             time_passed = datetime.now() - DATA_MANAGER.actual_date
-
+            print('train accu', accuracy_batch)
             # run on validation set and print progress to terminal
             if (batches_passed % self.arguments.eval_freq) == 0:  # todo
                 loss_validation, acc_validation = self._evaluate()
                 self._log(loss_validation, acc_validation, loss_batch, accuracy_batch, batches_passed, float(time_passed.microseconds))
+
 
             # check if runtime is expired
             if (time_passed.total_seconds() > (self.arguments.max_training_minutes * 60)) \
@@ -198,5 +199,6 @@ class Trainer:
         self.writer.add_scalar("Loss_validation", loss_validation, batches_done, time_passed)
         self.writer.add_scalar("Loss_train", loss_train, batches_done, time_passed)
         self.writer.add_scalar("Accuracy_train", acc_train, batches_done, time_passed)
+
         print(f"{PRINTCOLOR_UNDERLINE}Accuracy_validation{PRINTCOLOR_END}: {acc_validation}, {PRINTCOLOR_UNDERLINE}Loss_validation{PRINTCOLOR_END}: {loss_validation}, {PRINTCOLOR_UNDERLINE}Accuracy_train{PRINTCOLOR_END}: {acc_train}, {PRINTCOLOR_UNDERLINE}Loss_train{PRINTCOLOR_END}: {loss_train} \r", end='')
 

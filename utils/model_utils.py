@@ -54,4 +54,6 @@ _read_all_class_names()
 
 
 def calculate_accuracy(targets, output, *ignored):
-    return torch.Tensor([1])
+    probabilities = output.log_softmax(dim=-1)
+    _, classifications = probabilities.detach().max(dim=-1)
+    return (targets.cpu().eq(classifications)).float().mean()

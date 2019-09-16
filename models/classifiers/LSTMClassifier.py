@@ -37,4 +37,4 @@ class LSTMClassifier(GeneralModel):
             c0 = torch.zeros(self.lstm_num_layers, batch_size, self.lstm_num_hidden).to(self.device)
         output, (h, c) = self.model(x.float(), (h0.float(), c0.float()))
         output = self.output_layer(output)
-        return [output]  # , (h, c)
+        return [output[-1, :, :]]  # , (h, c) todo, doubt: get last values?

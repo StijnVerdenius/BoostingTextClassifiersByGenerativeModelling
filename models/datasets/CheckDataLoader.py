@@ -90,7 +90,7 @@ class CheckDataLoader(Dataset):
         df = pd.read_csv('local_data/spam_dataset.csv')
         data = np.array(df.Message)
         labels = np.array(df.Category)
-        torch.set_default_tensor_type(torch.FloatTensor) #todo hmm
+
         # ========= Preprocess data ===========
         # convert string labels into int labels
         labels = rewrite_labels(labels)
@@ -115,6 +115,6 @@ class CheckDataLoader(Dataset):
 
     def __getitem__(self, item):
         # item im hoping is an integer to index
-        return self.encoded_data[item, :, :], self.labels[item]
+        return self.encoded_data[item, :, :], self.labels[item].long()
         # vocab size x sequence length
 

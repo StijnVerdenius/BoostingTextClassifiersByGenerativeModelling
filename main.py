@@ -64,7 +64,7 @@ def parse() -> argparse.Namespace:
 
     # int
     parser.add_argument('--epochs', default=500, type=int, help='max number of epochs')
-    parser.add_argument('--eval_freq', default=20, type=int, help='evaluate every x batches')
+    parser.add_argument('--eval_freq', default=2, type=int, help='evaluate every x batches')
     parser.add_argument('--saving_freq', default=50, type=int, help='save every x epochs')
     parser.add_argument('--batch_size', default=128, type=int, help='size of batches')
     parser.add_argument('--embedding_size', default=100, type=int, help='size of embeddings') # todo
