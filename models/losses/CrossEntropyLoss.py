@@ -9,8 +9,7 @@ class CrossEntropyLoss(GeneralModel):
         super(CrossEntropyLoss, self).__init__(n_channels_in, device, **kwargs)
         self.loss = nn.CrossEntropyLoss()
 
-    def forward(self, inp):
-        out_data, target = inp
+    def forward(self, target, out_data):
         out_data = out_data.permute([1, 0, -1])
 
         # todo delete after checking w dummy spam data
