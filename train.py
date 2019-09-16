@@ -193,10 +193,9 @@ class Trainer:
         """
         logs progress to user through tensorboard and terminal
         """
-
         self.writer.add_scalar("Accuracy_validation", acc_validation, batches_done, time_passed)
         self.writer.add_scalar("Loss_validation", loss_validation, batches_done, time_passed)
         self.writer.add_scalar("Loss_train", loss_train, batches_done, time_passed)
         self.writer.add_scalar("Accuracy_train", acc_train, batches_done, time_passed)
-        print(f"{PRINTCOLOR_UNDERLINE}Accuracy_validation{PRINTCOLOR_END}: {acc_validation}, {PRINTCOLOR_UNDERLINE}Loss_validation{PRINTCOLOR_END}: {loss_validation}, {PRINTCOLOR_UNDERLINE}Accuracy_train{PRINTCOLOR_END}: {acc_train}, {PRINTCOLOR_UNDERLINE}Loss_train{PRINTCOLOR_END}: {loss_train} \r", end='')
+        print(f"Accuracy_validation: {acc_validation}, Loss_validation: {loss_validation}, Accuracy_train: {acc_train}, Loss_train: {loss_train}")
 

@@ -71,8 +71,8 @@ def parse() -> argparse.Namespace:
     parser.add_argument('--eval_freq', default=20, type=int, help='evaluate every x batches')
     parser.add_argument('--saving_freq', default=50, type=int, help='save every x epochs')
     parser.add_argument('--batch_size', default=128, type=int, help='size of batches')
-    parser.add_argument('--embedding_size', default=100, type=int, help='size of embeddings') # todo
-    parser.add_argument('--num_classes', default=10, type=int, help='size of embeddings') # todo
+    parser.add_argument('--embedding_size', default=106, type=int, help='size of embeddings') # todo
+    parser.add_argument('--num_classes', default=2, type=int, help='size of embeddings') # todo
     # parser.add_argument('--hidden_size', default=100, type=int, help='size of batches')
     # parser.add_argument('--z_size', default=100, type=int, help='size of batches')
     parser.add_argument('--max_training_minutes', default=24 * 60, type=int,
@@ -87,7 +87,7 @@ def parse() -> argparse.Namespace:
     parser.add_argument('--loss', default="CrossEntropyLoss", type=str, help='loss-function model name')
     parser.add_argument('--optimizer', default="Adam", type=str, help='optimizer model name')
     parser.add_argument('--data_folder', default=os.path.join('local_data', 'data'), type=str, help='data folder path')
-    parser.add_argument('--dataset_class', default="LyricsDataset", type=str, help='dataset name')
+    parser.add_argument('--dataset_class', default="CheckDataLoader", type=str, help='dataset name')
     parser.add_argument('--run_name', default="", type=str, help='extra identification for run')
 
     # bool

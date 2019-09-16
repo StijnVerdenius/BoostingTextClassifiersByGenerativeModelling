@@ -4,7 +4,7 @@ import torch
 
 class DummyDataset(Dataset):
 
-    def __init__(self, file="", set_name="train"):
+    def __init__(self, file="", set_name="train", **kwargs):
         super(DummyDataset, self).__init__()
         print(file, set_name)
 

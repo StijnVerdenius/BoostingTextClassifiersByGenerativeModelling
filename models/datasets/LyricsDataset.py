@@ -8,7 +8,7 @@ import torch
 
 class LyricsDataset(Dataset):
 
-    def __init__(self, folder, set_name):
+    def __init__(self, folder, set_name, **kwargs):
         super(LyricsDataset, self).__init__()
         
         data_manager = DataManager(folder)
