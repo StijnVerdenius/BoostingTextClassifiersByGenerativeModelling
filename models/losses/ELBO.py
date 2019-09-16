@@ -17,6 +17,8 @@ class ELBO(GeneralModel):
         """
 
         # todo: revisit
+        x = x.float()
+
 
         # regularisation loss
         loss_reg = -0.5 * torch.sum(std - mean.pow(2) - std.exp() + 1, 1).mean()

@@ -83,8 +83,8 @@ def parse() -> argparse.Namespace:
 
     # string
     parser.add_argument('--classifier', default="LSTMClassifier", type=str, help='classifier model name')
-    parser.add_argument('--generator', default="DummyGenerator", type=str, help='generator model name')
-    parser.add_argument('--loss', default="CrossEntropyLoss", type=str, help='loss-function model name')
+    parser.add_argument('--generator', default="BaseVAE", type=str, help='generator model name')
+    parser.add_argument('--loss', default="ELBO", type=str, help='loss-function model name')
     parser.add_argument('--optimizer', default="Adam", type=str, help='optimizer model name')
     parser.add_argument('--data_folder', default=os.path.join('local_data', 'data'), type=str, help='data folder path')
     parser.add_argument('--dataset_class', default="CheckDataLoader", type=str, help='dataset name')
@@ -92,7 +92,7 @@ def parse() -> argparse.Namespace:
 
     # bool
     parser.add_argument('--train_mode', default=True, type=bool, help='start in train_mode')
-    parser.add_argument('--train_classifier', default=True, type=bool, help='train a classifier')
+    parser.add_argument('--train_classifier', default=False, type=bool, help='train a classifier')
 
     # todo: add whatever you like
 
