@@ -51,7 +51,7 @@ def load_data_set(arguments: argparse.Namespace,
                   set_name: str) -> DataLoader:
     """ loads specific dataset as a DataLoader """
 
-    dataset = find_right_model(DATASETS, arguments.data_class, file=arguments.data_file, set_name=set_name)
+    dataset = find_right_model(DATASETS, arguments.dataset_class, file=arguments.data_folder, set_name=set_name)
     loader = DataLoader(dataset, shuffle=True, batch_size=arguments.batch_size, drop_last=True)
     # todo: revisit and validation checks
     return loader
@@ -82,8 +82,8 @@ def parse() -> argparse.Namespace:
     parser.add_argument('--generator', default="DummyGenerator", type=str, help='generator model name')
     parser.add_argument('--loss', default="CrossEntropyLoss", type=str, help='loss-function model name')
     parser.add_argument('--optimizer', default="Adam", type=str, help='optimizer model name')
-    parser.add_argument('--data_file', default="data.file", type=str, help='data file name')
-    parser.add_argument('--data_class', default="DummyDataLoader", type=str, help='dataloader model name')
+    parser.add_argument('--data_folder', default=os.path.join('local_data', 'data'), type=str, help='data folder path')
+    parser.add_argument('--dataset_class', default="LyricsDataset", type=str, help='dataset name')
     parser.add_argument('--run_name', default="", type=str, help='extra identification for run')
 
     # bool
