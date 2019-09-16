@@ -12,4 +12,5 @@ dependencies:
   - tqdm=4.35.*
   - h5py=2.10.*
   - pandas=0.25.*
+  - tensorflow=1.14.*
 #  TODO: add what you need!!

@@ -51,7 +51,7 @@ def main(arguments: argparse.Namespace):
 
         tester = Tester()
         raise NotImplementedError
-        pass  # todo: testing functionality, loading pretrained model
+        pass  # todo: testing functionality, loading pre-trained model
 
 
 def load_data_set(arguments: argparse.Namespace,
