@@ -56,7 +56,7 @@ def load_data_set(arguments: argparse.Namespace,
     """ loads specific dataset as a DataLoader """
 
     dataset = find_right_model(DATASETS, arguments.dataset_class, file=arguments.data_folder, set_name=set_name)
-    loader = DataLoader(dataset, shuffle=True, batch_size=arguments.batch_size, drop_last=True)
+    loader = DataLoader(dataset, shuffle=(set_name is TRAIN_SET), batch_size=arguments.batch_size)
     # todo: revisit and validation checks
     return loader
 
