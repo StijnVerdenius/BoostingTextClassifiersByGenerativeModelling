@@ -10,7 +10,7 @@ from torch.utils.data import DataLoader
 
 from models import GeneralModel
 from utils.constants import *
-from utils.model_utils import save_models, calculate_accuracy, delete_list
+from utils.model_utils import save_models, calculate_accuracy, delete_list, assert_type
 from utils.system_utils import setup_directories, save_codebase_of_run
 
 
@@ -42,9 +42,14 @@ class Trainer:
         self.writer = SummaryWriter(os.path.join(GITIGNORED_DIR, RESULTS_DIR, DATA_MANAGER.stamp, SUMMARY_DIR))
 
     def _validate_self(self):
-        # raise NotImplementedError
-        # todo: validate all self-fields on nulls and correct types and filling
+        # assert_type(self.arguments, argparse.Namespace)
+        # assert_type(self.loss_function, GeneralModel)
+        # assert_type(self.model, GeneralModel)
+        # assert_type(self.data_loader_validation, DataLoader)
+        # assert_type(self.data_loader_train, DataLoader)
+        # assert_type(self.optimizer, Optimizer)
         pass
+
 
     def train(self) -> bool:
         """

@@ -11,10 +11,8 @@
 - implement test functionality
 
 ##### train.py
-- implement function: evaluate in train.py
 - implement function: validate self in train.py
-- implement function: log in train.py
-- implement function: batch iteration in train.py
+
 
 ##### test.py
 - implement *
