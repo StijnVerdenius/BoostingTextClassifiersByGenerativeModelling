@@ -51,3 +51,7 @@ def save_models(models: List[nn.Module],
 
 # needed to load in class references
 _read_all_class_names()
+
+
+def calculate_accuracy(targets, output, *ignored):
+    pass

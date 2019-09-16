@@ -1,3 +1,5 @@
+import torch
+
 from utils.data_manager import DataManager
 import os
 
@@ -9,6 +11,7 @@ MODELS_DIR = "models"
 PROGRESS_DIR = "progress"
 DATA_DIR = "data"
 
+DEVICE = "cuda" if torch.cuda.is_available() else "cpu"
 
 PROJ_NAME = "DL4NLP"
 GITIGNORED_DIR = "local_data"

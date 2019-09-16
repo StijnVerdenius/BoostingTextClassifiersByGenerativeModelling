@@ -11,14 +11,9 @@ class ELBO(GeneralModel):
     def __init__(self, device="cpu", **kwargs):
         super(ELBO, self).__init__(0, device, **kwargs)
 
-    def forward(self, mean, std, reconstructed_mean, x):  # todo: revisit
+    def forward(self, _, mean, std, reconstructed_mean, x):  # todo: revisit
         """
         calculates negated-ELBO loss
-        :param mean:
-        :param std:
-        :param reconstructed_mean:
-        :param x:
-        :return:
         """
 
         # todo: revisit
