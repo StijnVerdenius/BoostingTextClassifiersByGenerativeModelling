@@ -1,8 +1,9 @@
 import _pickle as pickle
-from collections import defaultdict
-import matplotlib.pyplot as plt
-from datetime import datetime
 import os
+from collections import defaultdict
+from datetime import datetime
+
+import matplotlib.pyplot as plt
 
 
 class DataManager:
@@ -18,7 +19,8 @@ class DataManager:
         """ Saves python object to disk in pickle """
 
         try:
-            with open(self.directory + name + ".pickle", 'wb') as handle:
+            filepath = os.path.join(self.directory, f'{name}.pickle')
+            with open(filepath, 'wb') as handle:
                 pickle.dump(obj, handle, protocol=-1)
 
                 if (print_success):
@@ -78,16 +80,16 @@ class DataManager:
             plt.axis('off')
         plt.savefig(self.directory + name + ".png", bbox_inches='tight')
 
-    def set_date_stamp(self):
+    def set_date_stamp(self, addition=""):
         """ generates printable date stamp"""
 
         if (len(self.stamp) > 2):
             raise Exception("Attempting to reset datestamp, but it was already set")
 
         self.actual_date = datetime.now()
-        self.stamp = str(self.actual_date).split(".")[0].replace(" ", "_").replace(':', '.')
+        self.stamp = str(self.actual_date).split(".")[0].replace(" ", "_").replace(':', '.') + addition
         print(f"Made datestamp: {self.stamp}")
         return self.stamp
 
     def create_dir(self, name):
-        os.makedirs(self.directory + name, exist_ok=True)
+        os.makedirs(os.path.join(self.directory, name), exist_ok=True)

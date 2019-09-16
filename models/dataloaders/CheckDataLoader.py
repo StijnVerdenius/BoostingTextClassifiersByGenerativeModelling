@@ -87,7 +87,6 @@ class CheckDataLoader(Dataset):
 
     def __init__(self, file="", set_name="train"):
         super(CheckDataLoader, self).__init__()
-        print('Initializing CheckDataLoader- model checker!')
         df = pd.read_csv('local_data/spam_dataset.csv')
         data = np.array(df.Message)
         labels = np.array(df.Category)

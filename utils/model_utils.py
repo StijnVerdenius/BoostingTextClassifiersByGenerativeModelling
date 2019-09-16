@@ -1,5 +1,4 @@
 import importlib
-import os
 from typing import List
 
 import torch.nn as nn
@@ -17,9 +16,10 @@ def _read_all_class_names():
     """
 
     for typ in types:
-        for name in os.listdir(f"./models/{typ}"):
+        for name in os.listdir(os.path.join(".", "models", typ)):
             if not "__" in name:
-                short_name = name.split(".")[0]
+                short_name = str(name.split(".")[0])
+                short_name: str
                 module = importlib.import_module(f"models.{typ}.{short_name}")
                 class_reference = getattr(module, short_name)
                 models[typ][short_name] = class_reference
@@ -46,8 +46,12 @@ def save_models(models: List[nn.Module],
 
     save_dict = {str(model.__class__): model.state_dict() for model in models}
 
-    DATA_MANAGER.save_python_obj(save_dict, f"{RESULTS_DIR}/{DATA_MANAGER.stamp}/{MODELS_DIR}/{suffix}")
+    DATA_MANAGER.save_python_obj(save_dict, os.path.join(RESULTS_DIR, DATA_MANAGER.stamp, MODELS_DIR, suffix))
 
 
 # needed to load in class references
 _read_all_class_names()
+
+
+def calculate_accuracy(targets, output, *ignored):
+    pass

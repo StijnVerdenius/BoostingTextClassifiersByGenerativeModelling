@@ -17,8 +17,6 @@ class CrossEntropyLoss(GeneralModel):
         target_onehot = torch.zeros((target.shape[0], 2))
         for i, val in enumerate(target):
             target_onehot[i][val] = 1
-        print(target_onehot)
         # todo till here
 
-        print(out_data.shape)
         return self.loss(out_data, target_onehot.long())

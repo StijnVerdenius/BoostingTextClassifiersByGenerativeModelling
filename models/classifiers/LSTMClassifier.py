@@ -20,8 +20,6 @@ class LSTMClassifier(GeneralModel):
 
         super(LSTMClassifier, self).__init__(n_channels_in, device, **kwargs)
 
-        for key, value in kwargs.items():
-            print("{0} = {1}".format(key, value))
         self.lstm_num_layers = lstm_num_layers
         self.lstm_num_hidden = lstm_num_hidden
         self.num_classes = num_classes
@@ -40,4 +38,4 @@ class LSTMClassifier(GeneralModel):
             c0 = torch.zeros(self.lstm_num_layers, batch_size, self.lstm_num_hidden).to(self.device)
         output, (h, c) = self.model(x.float(), (h0.float(), c0.float()))
         output = self.output_layer(output)
-        return output, (h, c)
+        return output  # , (h, c)

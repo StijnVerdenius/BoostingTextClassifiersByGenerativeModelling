@@ -1,8 +1,10 @@
+import torch
+
+torch.cuda.current_device()
+
 import argparse
 import os
 import sys
-
-import torch
 from torch.utils.data import DataLoader
 
 from test import Tester
@@ -45,12 +47,10 @@ def main(arguments: argparse.Namespace):
         pass  # todo: testing functionality, loading pretrained model
 
 
-
 def load_data_set(arguments: argparse.Namespace,
                   set_name: str) -> DataLoader:
     """ loads specific dataset as a DataLoader """
 
-    DATA_MANAGER.load_python_obj(f"/data/{arguments.data_file}")
     dataset = find_right_model(LOADERS, arguments.data_class, file=arguments.data_file, set_name=set_name)
     loader = DataLoader(dataset, shuffle=True, batch_size=arguments.batch_size, drop_last=True)
     # todo: revisit and validation checks
@@ -62,6 +62,7 @@ def parse() -> argparse.Namespace:
 
     parser = argparse.ArgumentParser()
 
+    # int
     parser.add_argument('--epochs', default=500, type=int, help='max number of epochs')
     parser.add_argument('--eval_freq', default=2, type=int, help='evaluate every x epochs')
     parser.add_argument('--saving_freq', default=50, type=int, help='save every x epochs')
@@ -69,15 +70,19 @@ def parse() -> argparse.Namespace:
     parser.add_argument('--max_training_minutes', default=24 * 60, type=int,
                         help='max mins of training be4 save-and-kill')
 
+    # float
     parser.add_argument('--learning_rate', default=1e-4, type=float, help='learning rate')
 
+    # string
     parser.add_argument('--classifier', default="DummyClassifier", type=str, help='classifier model name')
     parser.add_argument('--generator', default="DummyGenerator", type=str, help='generator model name')
     parser.add_argument('--loss', default="DummyLoss", type=str, help='loss-function model name')
     parser.add_argument('--optimizer', default="Adam", type=str, help='optimizer model name')
     parser.add_argument('--data_file', default="data.file", type=str, help='data file name')
     parser.add_argument('--data_class', default="DummyDataLoader", type=str, help='dataloader model name')
+    parser.add_argument('--run_name', default="", type=str, help='extra identification for run')
 
+    # bool
     parser.add_argument('--train_mode', default=True, type=bool, help='start in train_mode')
     parser.add_argument('--train_classifier', default=True, type=bool, help='train a classifier')
 
@@ -91,6 +96,7 @@ if __name__ == '__main__':
     print("Pytorch version:", torch.__version__, "Python version:", sys.version)
     print("Working directory: ", os.getcwd())
     print("Cuda avalability:", torch.cuda.is_available(), "Cuda version:", torch.version.cuda)
+
     ensure_current_directory()
     args = parse()
     main(args)
