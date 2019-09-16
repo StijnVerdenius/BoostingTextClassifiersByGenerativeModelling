@@ -7,12 +7,9 @@ class DummyDataLoader(Dataset):
     def __init__(self, file="", set_name="train"):
         super(DummyDataLoader, self).__init__()
         print(file, set_name)
-        # raise NotImplementedError
 
     def __len__(self):
-        return 10
-        # raise NotImplementedError
+        return 315535445
 
     def __getitem__(self, item):
-        return torch.randn((2,3))
-        # raise NotImplementedError
+        return torch.randn((2,3)), torch.randn((2,3))

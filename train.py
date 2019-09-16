@@ -125,7 +125,7 @@ class Trainer:
             time_passed = datetime.now() - DATA_MANAGER.actual_date
 
             # run on validation set and print progress to terminal
-            if (batches_passed % self.arguments.eval_freq == 0):  # todo
+            if (batches_passed % self.arguments.eval_freq) == 0:  # todo
                 loss_validation, acc_validation = self._evaluate()
                 self._log(loss_validation, acc_validation, loss_batch, accuracy_batch, batches_passed, float(time_passed))
 
@@ -157,7 +157,7 @@ class Trainer:
 
         loss = self.loss_function.forward(targets, *output)
 
-        if (train_mode):
+        if train_mode:
             loss.backward()
             self.optimizer.step()
 
@@ -200,4 +200,4 @@ class Trainer:
         self.writer.add_scalar("Loss_train", loss_train, batches_done, time_passed)
         self.writer.add_scalar("Accuracy_train", acc_train, batches_done, time_passed)
         print(f"{PRINTCOLOR_UNDERLINE}Accuracy_validation{PRINTCOLOR_END}: {acc_validation}, {PRINTCOLOR_UNDERLINE}Loss_validation{PRINTCOLOR_END}: {loss_validation}, {PRINTCOLOR_UNDERLINE}Accuracy_train{PRINTCOLOR_END}: {acc_train}, {PRINTCOLOR_UNDERLINE}Loss_train{PRINTCOLOR_END}: {loss_train} \r", end='')
-        return
+
