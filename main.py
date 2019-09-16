@@ -59,6 +59,7 @@ def parse() -> argparse.Namespace:
 
     parser = argparse.ArgumentParser()
 
+    # int
     parser.add_argument('--epochs', default=500, type=int, help='max number of epochs')
     parser.add_argument('--eval_freq', default=2, type=int, help='evaluate every x epochs')
     parser.add_argument('--saving_freq', default=50, type=int, help='save every x epochs')
@@ -66,15 +67,19 @@ def parse() -> argparse.Namespace:
     parser.add_argument('--max_training_minutes', default=24 * 60, type=int,
                         help='max mins of training be4 save-and-kill')
 
+    # float
     parser.add_argument('--learning_rate', default=1e-4, type=float, help='learning rate')
 
+    # string
     parser.add_argument('--classifier', default="DummyClassifier", type=str, help='classifier model name')
     parser.add_argument('--generator', default="DummyGenerator", type=str, help='generator model name')
     parser.add_argument('--loss', default="DummyLoss", type=str, help='loss-function model name')
     parser.add_argument('--optimizer', default="Adam", type=str, help='optimizer model name')
     parser.add_argument('--data_file', default="data.file", type=str, help='data file name')
     parser.add_argument('--data_class', default="DummyDataLoader", type=str, help='dataloader model name')
+    parser.add_argument('--run_name', default="", type=str, help='extra identification for run')
 
+    # bool
     parser.add_argument('--train_mode', default=True, type=bool, help='start in train_mode')
     parser.add_argument('--train_classifier', default=True, type=bool, help='train a classifier')
 

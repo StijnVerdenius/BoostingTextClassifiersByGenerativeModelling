@@ -1,8 +1,9 @@
 import _pickle as pickle
-from collections import defaultdict
-import matplotlib.pyplot as plt
-from datetime import datetime
 import os
+from collections import defaultdict
+from datetime import datetime
+
+import matplotlib.pyplot as plt
 
 
 class DataManager:
@@ -79,14 +80,14 @@ class DataManager:
             plt.axis('off')
         plt.savefig(self.directory + name + ".png", bbox_inches='tight')
 
-    def set_date_stamp(self):
+    def set_date_stamp(self, addition=""):
         """ generates printable date stamp"""
 
         if (len(self.stamp) > 2):
             raise Exception("Attempting to reset datestamp, but it was already set")
 
         self.actual_date = datetime.now()
-        self.stamp = str(self.actual_date).split(".")[0].replace(" ", "_")
+        self.stamp = str(self.actual_date).split(".")[0].replace(" ", "_") + addition
         print(f"Made datestamp: {self.stamp}")
         return self.stamp
 

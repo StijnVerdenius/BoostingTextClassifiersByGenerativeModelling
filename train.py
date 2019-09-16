@@ -37,7 +37,7 @@ class Trainer:
         self._validate_self()
 
         # init current runs timestamp
-        DATA_MANAGER.set_date_stamp()
+        DATA_MANAGER.set_date_stamp(addition=args.run_name)
 
         # initialize tensorboardx
         self.writer = SummaryWriter(os.path.join(GITIGNORED_DIR, RESULTS_DIR, DATA_MANAGER.stamp, SUMMARY_DIR))
@@ -156,7 +156,7 @@ class Trainer:
 
         # backward call etc
 
-        # raise NotImplementedError
+        raise NotImplementedError
 
         return None, None  # todo
 
@@ -165,7 +165,7 @@ class Trainer:
         runs iteration on validation set
         """
 
-        # raise NotImplementedError
+        raise NotImplementedError
         return None, None  # todo
 
     def _log(self,
@@ -175,5 +175,5 @@ class Trainer:
         logs progress to user through tensorboard and terminal
         """
 
-        # raise NotImplementedError
+        raise NotImplementedError
         pass  # todo
