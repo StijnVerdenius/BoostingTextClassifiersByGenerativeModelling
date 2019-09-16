@@ -8,7 +8,7 @@ sys.path.append('..')
 
 from utils.data_manager import DataManager
 from utils.system_utils import ensure_current_directory
-
+from models.entities.Song import Song
 
 def save_dataset_text(dataset, embeddings_folder_path, filename):
     embeddings_filename = os.path.join(embeddings_folder_path, filename)
@@ -16,12 +16,6 @@ def save_dataset_text(dataset, embeddings_folder_path, filename):
         for _, song_entries in dataset.items():
             for song_entry in song_entries:
                 embeddings_file.write(song_entry[1])
-
-def remove_ending_substring(string, substring):
-    while string.endswith(substring):
-        return string[:-len(substring)]
-
-    return string
 
 ensure_current_directory()
 main_path = os.path.join('local_data', 'data')
@@ -55,9 +49,8 @@ with open(dataset_file_path, 'r', encoding="utf8") as dataset_file:
         if not any(c.isalpha() for c in row[5]):
             continue
 
-        song_lyrics = re.sub('\n+', '\n', row[5])
-        song_lyrics = remove_ending_substring(song_lyrics, '\n')
-        song_entry = [lines_counter, song_lyrics, song_lyrics.count('\n') + 1]
+        song_entry = Song(row[4], row[5], lines_counter)
+        lines_counter += song_entry.number_of_lines
 
         if row[4] not in song_entries_by_genre.keys():
             song_entries_by_genre[row[4]] = [song_entry]
@@ -85,17 +78,21 @@ for genre, song_entries in song_entries_by_genre.items():
     test_data[genre] = song_entries[int(len(song_entries)*0.8):]
 
     # # print statistics
-    min_length = min([len(song_entry[1]) for song_entry in song_entries])
-    max_length = max([len(song_entry[1]) for song_entry in song_entries])
-    avg_length = np.mean([len(song_entry[1]) for song_entry in song_entries])
+    min_length = min([len(song_entry.lyrics) for song_entry in song_entries])
+    max_length = max([len(song_entry.lyrics) for song_entry in song_entries])
+    avg_length = np.mean([len(song_entry.lyrics) for song_entry in song_entries])
     print(f'{genre} - min: {min_length} | max: {max_length} | mean: {avg_length} | all: {len(song_entries)} | train: {len(train_data[genre])} | validation: {len(validation_data[genre])} | test: {len(test_data[genre])}')
+
+train_song_entries = [item for value in train_data.values() for item in value]
+validation_song_entries = [item for value in validation_data.values() for item in value]
+test_song_entries = [item for value in test_data.values() for item in value]
 
 data_manager = DataManager(main_path)
 print(data_manager.directory)
-data_manager.save_python_obj(train_data, 'song_lyrics.train')
-data_manager.save_python_obj(validation_data, 'song_lyrics.validation')
-data_manager.save_python_obj(test_data, 'song_lyrics.test')
+data_manager.save_python_obj(train_song_entries, 'song_lyrics.train')
+data_manager.save_python_obj(validation_song_entries, 'song_lyrics.validation')
+data_manager.save_python_obj(test_song_entries, 'song_lyrics.test')
 
-save_dataset_text(train_data, embeddings_folder_path, 'embeddings.train.txt')
-save_dataset_text(validation_data, embeddings_folder_path, 'embeddings.validation.txt')
-save_dataset_text(test_data, embeddings_folder_path, 'embeddings.test.txt')
+# save_dataset_text(train_data, embeddings_folder_path, 'embeddings.train.txt')
+# save_dataset_text(validation_data, embeddings_folder_path, 'embeddings.validation.txt')
+# save_dataset_text(test_data, embeddings_folder_path, 'embeddings.test.txt')

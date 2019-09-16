@@ -6,7 +6,7 @@ import torch.optim as opt
 
 from utils.constants import *
 
-types = [CLASS_DIR, GEN_DIR, LOSS_DIR, LOADERS]
+types = [CLASS_DIR, GEN_DIR, LOSS_DIR, DATASETS]
 models = {x: {} for x in types}
 
 

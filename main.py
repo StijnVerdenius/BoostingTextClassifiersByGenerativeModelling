@@ -50,7 +50,7 @@ def load_data_set(arguments: argparse.Namespace,
                   set_name: str) -> DataLoader:
     """ loads specific dataset as a DataLoader """
 
-    dataset = find_right_model(LOADERS, arguments.data_class, file=arguments.data_file, set_name=set_name)
+    dataset = find_right_model(DATASETS, arguments.data_class, file=arguments.data_file, set_name=set_name)
     loader = DataLoader(dataset, shuffle=True, batch_size=arguments.batch_size, drop_last=True)
     # todo: revisit and validation checks
     return loader

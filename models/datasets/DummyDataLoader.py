@@ -2,10 +2,10 @@
 from torch.utils.data import Dataset
 import torch
 
-class DummyDataLoader(Dataset):
+class DummyDataset(Dataset):
 
     def __init__(self, file="", set_name="train"):
-        super(DummyDataLoader, self).__init__()
+        super(DummyDataset, self).__init__()
         print(file, set_name)
 
     def __len__(self):
