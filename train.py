@@ -117,7 +117,7 @@ class Trainer:
 
         progress = []
 
-        for i, (batch, targets) in enumerate(self.data_loader_train):
+        for i, (batch, targets, lengths) in enumerate(self.data_loader_train):
 
             # do forward pass and whatnot on batch
             loss_batch, accuracy_batch = self._batch_iteration(batch, targets)

@@ -14,6 +14,7 @@ from train import Trainer
 from utils.constants import *
 from utils.model_utils import find_right_model
 from utils.system_utils import ensure_current_directory
+from utils.dataloader_utils import pad_and_sort_batch
 
 
 def main(arguments: argparse.Namespace):
@@ -34,10 +35,6 @@ def main(arguments: argparse.Namespace):
     if arguments.test_mode:
         # we are in test mode
         data_loader_test = load_data_set(arguments, TEST_SET)
-
-        for _, item in enumerate(data_loader_test):
-            print(item[1])
-            break
 
         tester = Tester()
         raise NotImplementedError
@@ -62,10 +59,9 @@ def load_data_set(arguments: argparse.Namespace,
     """ loads specific dataset as a DataLoader """
 
     dataset = find_right_model(DATASETS, arguments.dataset_class, folder=arguments.data_folder, set_name=set_name)
-    loader = DataLoader(dataset, shuffle=(set_name is TRAIN_SET), batch_size=arguments.batch_size)
+    loader = DataLoader(dataset, shuffle=(set_name is TRAIN_SET), batch_size=arguments.batch_size, collate_fn=pad_and_sort_batch)
     # todo: revisit and validation checks
     return loader
-
 
 def parse() -> argparse.Namespace:
     """ does argument parsing """

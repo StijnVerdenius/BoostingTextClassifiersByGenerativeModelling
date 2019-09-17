@@ -9,6 +9,7 @@ sys.path.append('..')
 from utils.data_manager import DataManager
 from utils.system_utils import ensure_current_directory
 from models.entities.Song import Song
+from models.enums.Genre import Genre
 
 def save_dataset_text(dataset, embeddings_folder_path, filename):
     embeddings_filename = os.path.join(embeddings_folder_path, filename)
@@ -49,8 +50,13 @@ with open(dataset_file_path, 'r', encoding="utf8") as dataset_file:
         if not any(c.isalpha() for c in row[5]):
             continue
 
-        song_entry = Song(row[4], row[5], lines_counter)
-        lines_counter += song_entry.number_of_lines
+        song_genre = Genre.from_str(row[4])
+        
+        # if the song genre is None, it means it's not supported, so we skip this song
+        if not song_genre:
+            continue
+
+        song_entry = Song(song_genre, row[5])
 
         if row[4] not in song_entries_by_genre.keys():
             song_entries_by_genre[row[4]] = [song_entry]
@@ -58,12 +64,9 @@ with open(dataset_file_path, 'r', encoding="utf8") as dataset_file:
             song_entries_by_genre[row[4]].append(song_entry)
 
 genres = list(song_entries_by_genre.keys())
-songs_limit = 13000
+songs_limit = 100
 for genre in genres:
-    if len(song_entries_by_genre[genre]) < songs_limit:
-        del song_entries_by_genre[genre]
-    else:
-        song_entries_by_genre[genre] = song_entries_by_genre[genre][:100]
+    song_entries_by_genre[genre] = song_entries_by_genre[genre][:songs_limit]
 
 train_data, validation_data, test_data = {}, {}, {}
 
@@ -83,12 +86,26 @@ for genre, song_entries in song_entries_by_genre.items():
     avg_length = np.mean([len(song_entry.lyrics) for song_entry in song_entries])
     print(f'{genre} - min: {min_length} | max: {max_length} | mean: {avg_length} | all: {len(song_entries)} | train: {len(train_data[genre])} | validation: {len(validation_data[genre])} | test: {len(test_data[genre])}')
 
-train_song_entries = [item for value in train_data.values() for item in value]
-validation_song_entries = [item for value in validation_data.values() for item in value]
-test_song_entries = [item for value in test_data.values() for item in value]
+train_song_entries = sorted([item for value in train_data.values() for item in value], key=lambda song: len(song.lyrics))
+validation_song_entries = sorted([item for value in validation_data.values() for item in value], key=lambda song: len(song.lyrics))
+test_song_entries = sorted([item for value in test_data.values() for item in value], key=lambda song: len(song.lyrics))
+
+lines_counter = 0
+for song in train_song_entries:
+    song.start_index = lines_counter
+    lines_counter += song.number_of_lines
+
+lines_counter = 0
+for song in validation_song_entries:
+    song.start_index = lines_counter
+    lines_counter += song.number_of_lines
+    
+lines_counter = 0
+for song in test_song_entries:
+    song.start_index = lines_counter
+    lines_counter += song.number_of_lines
 
 data_manager = DataManager(main_path)
-print(data_manager.directory)
 data_manager.save_python_obj(train_song_entries, 'song_lyrics.train')
 data_manager.save_python_obj(validation_song_entries, 'song_lyrics.validation')
 data_manager.save_python_obj(test_song_entries, 'song_lyrics.test')
