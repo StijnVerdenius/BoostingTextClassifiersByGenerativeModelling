@@ -11,12 +11,12 @@ from utils.system_utils import ensure_current_directory
 from models.entities.Song import Song
 from models.enums.Genre import Genre
 
-def save_dataset_text(dataset, embeddings_folder_path, filename):
+def save_dataset_text(song_entries, embeddings_folder_path, filename):
     embeddings_filename = os.path.join(embeddings_folder_path, filename)
     with open(embeddings_filename, 'w', encoding='utf8') as embeddings_file:
-        for _, song_entries in dataset.items():
-            for song_entry in song_entries:
-                embeddings_file.write(song_entry.lyrics)
+        # for _, song_entries in dataset.items():
+        for song_entry in song_entries:
+            embeddings_file.write(f'{song_entry.lyrics}\n')
 
 ensure_current_directory()
 main_path = os.path.join('local_data', 'data')
@@ -110,6 +110,6 @@ data_manager.save_python_obj(train_song_entries, 'song_lyrics.train')
 data_manager.save_python_obj(validation_song_entries, 'song_lyrics.validation')
 data_manager.save_python_obj(test_song_entries, 'song_lyrics.test')
 
-save_dataset_text(train_data, embeddings_folder_path, 'embeddings.train.txt')
-save_dataset_text(validation_data, embeddings_folder_path, 'embeddings.validation.txt')
-save_dataset_text(test_data, embeddings_folder_path, 'embeddings.test.txt')
+save_dataset_text(train_song_entries, embeddings_folder_path, 'embeddings.train.txt')
+save_dataset_text(validation_song_entries, embeddings_folder_path, 'embeddings.validation.txt')
+save_dataset_text(test_song_entries, embeddings_folder_path, 'embeddings.test.txt')
