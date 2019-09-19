@@ -154,6 +154,7 @@ class Trainer:
 
         batch = batch.to(DEVICE)
         targets = targets.to(DEVICE)
+        lengths = lengths.to(DEVICE)
 
         if train_mode:
             self.model.train()
@@ -161,8 +162,6 @@ class Trainer:
             self.model.eval()
 
         output = self.model.forward(batch, lengths)
-        print(output.shape)
-        print(output)
         loss = self.loss_function.forward(targets, *output)
 
         if train_mode:
@@ -185,9 +184,9 @@ class Trainer:
         accs = []
         losses = []
 
-        for i, (batch, targets) in enumerate(self.data_loader_validation):
+        for i, (batch, targets, lengths) in enumerate(self.data_loader_validation):
             # do forward pass and whatnot on batch
-            loss_batch, accuracy_batch = self._batch_iteration(batch, targets, train_mode=False)
+            loss_batch, accuracy_batch = self._batch_iteration(batch, targets, lengths, train_mode=False)
             accs.append(accuracy_batch)
             losses.append(loss_batch)
 
