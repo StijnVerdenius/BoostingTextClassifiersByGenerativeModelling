@@ -22,4 +22,5 @@ class CrossEntropyLoss(GeneralModel):
         # print(out_data)
         # print(target_onehot.shape)
         # print(target_onehot)
+
         return self.loss(out_data.to(self.device), target.to(self.device))
