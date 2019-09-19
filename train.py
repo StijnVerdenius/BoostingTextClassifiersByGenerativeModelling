@@ -120,7 +120,7 @@ class Trainer:
         for i, (batch, targets, lengths) in enumerate(self.data_loader_train):
 
             # do forward pass and whatnot on batch
-            loss_batch, accuracy_batch = self._batch_iteration(batch, targets)
+            loss_batch, accuracy_batch = self._batch_iteration(batch, targets, lengths)
 
             # add to list somehow: todo: make statistic class?
             progress.append({"loss": loss_batch, "acc": accuracy_batch})
@@ -146,6 +146,7 @@ class Trainer:
     def _batch_iteration(self,
                          batch: torch.Tensor,
                          targets: torch.Tensor,
+                         lengths: torch.Tensor,
                          train_mode: bool = True) -> Tuple[float, float]:
         """
         runs forward pass on batch and backward pass if in train_mode
@@ -159,7 +160,9 @@ class Trainer:
         else:
             self.model.eval()
 
-        output = self.model.forward(batch)
+        output = self.model.forward(batch, lengths)
+        print(output.shape)
+        print(output)
         loss = self.loss_function.forward(targets, *output)
 
         if train_mode:
