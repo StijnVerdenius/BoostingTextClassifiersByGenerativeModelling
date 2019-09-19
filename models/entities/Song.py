@@ -19,6 +19,8 @@ class Song():
         
         parsed_lyrics = re.sub('\n+', '\n', lyrics)
         parsed_lyrics = remove_ending_substring(parsed_lyrics, '\n')
+        parsed_lyrics = parsed_lyrics.replace('\n \n', '\n')
+
         self._lyrics = parsed_lyrics
         self._start_index = 0
 
