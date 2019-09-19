@@ -46,6 +46,10 @@ def main(arguments: argparse.Namespace):
         data_loader_validation = load_data_set(arguments, VALIDATION_SET)
 
         # get optimizer and loss function
+        print('PARAMS')
+        for name, param in model.named_parameters():
+            if param.requires_grad:
+                print(name, param.requires_grad)
         optimizer = find_right_model(OPTIMS, arguments.optimizer, params=model.parameters(), lr=arguments.learning_rate)
         loss_function = find_right_model(LOSS_DIR, arguments.loss, some_param="example").to(DEVICE)
 
@@ -59,7 +63,7 @@ def load_data_set(arguments: argparse.Namespace,
     """ loads specific dataset as a DataLoader """
 
     dataset = find_right_model(DATASETS, arguments.dataset_class, folder=arguments.data_folder, set_name=set_name)
-    loader = DataLoader(dataset, shuffle=(set_name is TRAIN_SET), batch_size=arguments.batch_size, collate_fn=pad_and_sort_batch)
+    loader = DataLoader(dataset, shuffle=False, batch_size=arguments.batch_size, collate_fn=pad_and_sort_batch) # (set_name is TRAIN_SET)
     # todo: revisit and validation checks
     return loader
 
@@ -70,7 +74,7 @@ def parse() -> argparse.Namespace:
 
     # int
     parser.add_argument('--epochs', default=500, type=int, help='max number of epochs')
-    parser.add_argument('--eval_freq', default=20, type=int, help='evaluate every x batches')
+    parser.add_argument('--eval_freq', default=1, type=int, help='evaluate every x batches')
     parser.add_argument('--saving_freq', default=50, type=int, help='save every x epochs')
     parser.add_argument('--batch_size', default=64, type=int, help='size of batches')
     parser.add_argument('--embedding_size', default=106, type=int, help='size of embeddings')  # todo

@@ -5,6 +5,7 @@ from utils.data_manager import DataManager
 
 from torch.utils.data import Dataset
 import torch
+import numpy as np
 
 class LyricsDataset(Dataset):
 
@@ -15,7 +16,7 @@ class LyricsDataset(Dataset):
         
         # load the song entries pickle
         self._song_entries = data_manager.load_python_obj(f'song_lyrics.{set_name}')
-
+        self.set_name = set_name
         # assert that the embedding folder exists inside the passed folder
         embeddings_folder_path = os.path.join(folder, 'embeddings')
         assert os.path.exists(embeddings_folder_path)
@@ -29,21 +30,28 @@ class LyricsDataset(Dataset):
 
     def __getitem__(self, index):
         song_entry = self._song_entries[index]
-        
+
         embeddings_file = h5py.File(self._embeddings_file_path, 'r')
         embeddings = None
 
+        corrupt = False
         # TODO: Check if we shouldn't have all lines as one ELMO entry
         for index in range(song_entry.start_index, song_entry.start_index + song_entry.number_of_lines):
-            sentence_embeddings = torch.Tensor(embeddings_file[str(index)])
+            if str(index) in embeddings_file.keys():
+                sentence_embeddings = torch.Tensor(embeddings_file[str(index)])
 
-            # if the embeddings are not initialized, initialize them,
-            # otherwise just cat this line to the previous ones
-            if embeddings is None:
-                embeddings = sentence_embeddings
+                # if the embeddings are not initialized, initialize them,
+                # otherwise just cat this line to the previous ones
+                if embeddings is None:
+                    embeddings = sentence_embeddings
+                else:
+                    embeddings = torch.cat([embeddings, sentence_embeddings], dim=0)
             else:
-                embeddings = torch.cat([embeddings, sentence_embeddings], dim=0)
+                print('Encountered: Unable to open object (object blabla doesnt exist)', index, self.set_name)
+                corrupt = True
+                break
 
         embeddings_file.close()
-
+        if corrupt:
+            return self.__getitem__(np.random.randint(0, self.__len__()))
         return embeddings, int(song_entry.genre.value)
