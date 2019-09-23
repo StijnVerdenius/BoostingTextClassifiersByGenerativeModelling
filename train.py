@@ -132,7 +132,7 @@ class Trainer:
             # run on validation set and print progress to terminal
             if (batches_passed % self.arguments.eval_freq) == 0:  # todo
                 loss_validation, acc_validation = self._evaluate()
-                self._log(loss_validation, acc_validation, loss_batch, accuracy_batch, batches_passed, float(time_passed.microseconds))
+                self._log(loss_validation, acc_validation, loss_batch, accuracy_batch, batches_passed, float(time_passed.microseconds), len(self.data_loader_train))
 
 
             # check if runtime is expired
@@ -201,6 +201,7 @@ class Trainer:
              acc_train: float,
              batches_done: int,
              time_passed:  float,
+             len_dataset: int,
              ):
         """
         logs progress to user through tensorboard and terminal
@@ -209,6 +210,6 @@ class Trainer:
         self.writer.add_scalar("Loss_validation", loss_validation, batches_done, time_passed)
         self.writer.add_scalar("Loss_train", loss_train, batches_done, time_passed)
         self.writer.add_scalar("Accuracy_train", acc_train, batches_done, time_passed)
-        print(f"Accuracy_validation: {acc_validation}, Loss_validation: {loss_validation}, Accuracy_train: {acc_train}, Loss_train: {loss_train}")
+        print(f"Batch: ({batches_done}|{batches_done%len_dataset})/{len_dataset}, Accuracy_validation: {acc_validation}, Loss_validation: {loss_validation}, Accuracy_train: {acc_train}, Loss_train: {loss_train}")
 
 
