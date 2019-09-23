@@ -25,6 +25,8 @@ class LyricsDataset(Dataset):
         self._embeddings_file_path = os.path.join(embeddings_folder_path, f'embeddings.{set_name}.hdf5')
         assert os.path.exists(self._embeddings_file_path)
 
+        print('-- Loaded dataset:', self.set_name, '- size:', self.__len__())
+
     def __len__(self):
         return len(self._song_entries)
 
