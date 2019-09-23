@@ -14,4 +14,6 @@ module load cuDNN/7.0.5-CUDA-9.0.176
 module load NCCL/2.0.5-CUDA-9.0.176
 export LD_LIBRARY_PATH=/hpc/eb/Debian9/cuDNN/7.1-CUDA-8.0.44-GCCcore-5.4.0/lib64:$LD_LIBRARY_PATH
 
+
+### todo: COPY TO SCRATCH FIRST??? -> see example in vae file
 srun python3 -u main.py --classifier LSTMClassifier --dataset_class LyricsDataset --loss CrossEntropyLoss --train-classifier
