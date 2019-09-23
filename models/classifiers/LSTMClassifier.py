@@ -10,7 +10,7 @@ class LSTMClassifier(GeneralModel):
 
     def __init__(self,
                  num_classes=10,
-                 lstm_num_layers=2,
+                 lstm_num_layers=1,
                  hidden_dim=256,
                  dropout=0.0,
                  batch_first=True,
@@ -31,16 +31,11 @@ class LSTMClassifier(GeneralModel):
         self.output_layer_toClass = nn.Linear(hidden_dim*2, num_classes, bias=False)
 
     def forward(self, x, lengths, h0=None, c0=None):
-        # batch_size, seq_length, vocab_size = x.shape  # todo implement check? # must turn 2(seq_len, batch, input_size)
 
         x_packed = pack_padded_sequence(x, lengths, batch_first=True)
-        # if h0 is None:
-        #     h0 = torch.zeros(self.lstm_num_layers*2, batch_size, self.lstm_num_hidden).to(self.device)
-        #     c0 = torch.zeros(self.lstm_num_layers*2, batch_size, self.lstm_num_hidden).to(self.device)
 
-        output, (h, _) = self.model(x_packed.float())#, (h0.float(), c0.float()))
+        output, (_, _) = self.model(x_packed.float())
         output, _ = pad_packed_sequence(output, batch_first=True)
 
         output = self.output_layer_toClass(output)
-        return [output.sum(dim=1)] # [output[:, -1, :]]  # , (h, c)
-        # TODO concerns: take last, or average or sum ????
+        return [output.sum(dim=1)]
