@@ -166,7 +166,7 @@ class Trainer:
 
         if train_mode:
             loss.backward()
-            torch.nn.utils.clip_grad_norm(self.model.parameters(), max_norm=5.0)
+            torch.nn.utils.clip_grad_norm_(self.model.parameters(), max_norm=5.0)
             self.optimizer.step()
             self.optimizer.zero_grad()
 
@@ -174,7 +174,8 @@ class Trainer:
         if self.arguments.train_classifier:
             accuracy = calculate_accuracy(targets, *output).item()
 
-        delete_list([output, batch, targets])
+        # delete_list([output, batch, targets])
+
 
         return loss.item(), accuracy
 
