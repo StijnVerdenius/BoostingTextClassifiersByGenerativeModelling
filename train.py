@@ -13,8 +13,10 @@ from utils.constants import *
 from utils.model_utils import save_models, calculate_accuracy
 from utils.system_utils import setup_directories, save_codebase_of_run
 
+import time
 
 class Trainer:
+
 
     def __init__(self,
                  data_loader_train: DataLoader,
@@ -31,6 +33,9 @@ class Trainer:
         self.model = model
         self.data_loader_validation = data_loader_validation
         self.data_loader_train = data_loader_train
+        self._log_header = '  Time Epoch Iteration    Progress (%Epoch) | Train Loss Train Acc. | Valid Loss Valid Acc. | Best'
+        self._log_template = ' '.join('{:>6.0f},{:>5.0f},{:>9.0f},{:>5.0f}/{:<5.0f} {:>7.0f}%,| {:>10.6f} {:>10.6f} | {:>10.6f} {:>10.6f} | {:>4s}'.split(','))
+        self._start_time = time.time()
 
         # validate input to class
         self._validate_self()
@@ -67,15 +72,13 @@ class Trainer:
         try:
 
             print(f"{PRINTCOLOR_BOLD}Started training with the following config:{PRINTCOLOR_END}\n{self.arguments}\n\n")
+            print(self._log_header)
 
+            best_accuracy = 0
             # run
             for epoch in range(self.arguments.epochs):
-
-                print(
-                    f"\n\n{PRINTCOLOR_BOLD}Starting epoch{PRINTCOLOR_END} {epoch}/{self.arguments.epochs} at {str(datetime.now())}")
-
                 # do epoch
-                epoch_progress = self._epoch_iteration(epoch)
+                epoch_progress, best_accuracy = self._epoch_iteration(epoch, best_accuracy)
 
                 # add progress-list to global progress-list
                 progress += epoch_progress
@@ -85,10 +88,6 @@ class Trainer:
                                              os.path.join(RESULTS_DIR, DATA_MANAGER.stamp, PROGRESS_DIR,
                                                           "progress_list"),
                                              print_success=False)
-
-                # write models if needed (don't save the first one
-                if ((epoch + 1) % self.arguments.saving_freq) == 0:
-                    save_models([self.model], f"Models_at_epoch_{epoch}")
 
                 # flush prints
                 sys.stdout.flush()
@@ -109,7 +108,10 @@ class Trainer:
         save_models([self.model], "finished")
         return True
 
-    def _epoch_iteration(self, epoch_num: int) -> List:
+    def _epoch_iteration(
+        self,
+        epoch_num: int,
+        best_accuracy: float) -> Tuple[List, float]:
         """
         one epoch implementation
         """
@@ -121,8 +123,10 @@ class Trainer:
 
         train_accuracy = 0
         train_loss = 0
+        data_loader_length = len(self.data_loader_train)
 
         for i, (batch, targets, lengths) in enumerate(self.data_loader_train):
+            print(f'Train: {i}/{data_loader_length}       \r', end='')
 
             # do forward pass and whatnot on batch
             loss_batch, accuracy_batch = self._batch_iteration(batch, targets, lengths)
@@ -137,10 +141,30 @@ class Trainer:
             time_passed = datetime.now() - DATA_MANAGER.actual_date
 
             # run on validation set and print progress to terminal
-            if (batches_passed % self.arguments.eval_freq) == 0:  # todo
+            # if we have eval_frequency or if we have finished the epoch
+            if (batches_passed % self.arguments.eval_freq) == 0 or (i+1 == data_loader_length):
                 loss_validation, acc_validation = self._evaluate()
+                
+                new_best = False
                 self._log(loss_validation, acc_validation, (train_loss / (i + 1)), (train_accuracy / (i + 1)),
                           batches_passed, float(time_passed.microseconds), len(self.data_loader_train))
+                if best_accuracy < acc_validation:
+                    save_models([self.model], 'model_best')
+                    best_accuracy = acc_validation
+                    new_best = True
+
+                self._log(
+                    loss_validation,
+                    acc_validation,
+                    (train_loss / (i+1)),
+                    (train_accuracy / (i+1)),
+                    batches_passed,
+                    float(time_passed.microseconds),
+                    len(self.data_loader_train),
+                    epoch_num,
+                    i,
+                    data_loader_length,
+                    new_best)
 
             # check if runtime is expired
             if (time_passed.total_seconds() > (self.arguments.max_training_minutes * 60)) \
@@ -148,7 +172,7 @@ class Trainer:
                 raise KeyboardInterrupt(f"Process killed because {self.arguments.max_training_minutes} minutes passed "
                                         f"since {DATA_MANAGER.actual_date}. Time now is {datetime.now()}")
 
-        return progress
+        return progress, best_accuracy
 
     def _batch_iteration(self,
                          batch: torch.Tensor,
@@ -187,16 +211,19 @@ class Trainer:
         runs iteration on validation set
         """
 
-        accs = []
+        accuracies = []
         losses = []
+        data_loader_length = len(self.data_loader_validation)
 
         for i, (batch, targets, lengths) in enumerate(self.data_loader_validation):
+            print(f'Validation: {i}/{data_loader_length}       \r', end='')
+
             # do forward pass and whatnot on batch
             loss_batch, accuracy_batch = self._batch_iteration(batch, targets, lengths, train_mode=False)
-            accs.append(accuracy_batch)
+            accuracies.append(accuracy_batch)
             losses.append(loss_batch)
 
-        return float(np.mean(losses)), float(np.mean(accs))
+        return float(np.mean(losses)), float(np.mean(accuracies))
 
     def _log(self,
              loss_validation: float,
@@ -206,7 +233,10 @@ class Trainer:
              batches_done: int,
              time_passed: float,
              len_dataset: int,
-             ):
+             epoch: int,
+             iteration: int,
+             iterations: int,
+             new_best: bool):
         """
         logs progress to user through tensorboard and terminal
         """
@@ -222,3 +252,16 @@ class Trainer:
                 f"Batch: ({batches_done}|{batches_done % len_dataset})/{len_dataset}, Loss_validation: {loss_validation}, Loss_train: {loss_train}, Independent losses: {self.loss_function.get_losses()}")
         self.writer.add_scalar("Loss_validation", loss_validation, batches_done, time_passed)
         self.writer.add_scalar("Loss_train", loss_train, batches_done, time_passed)
+        
+        print(self._log_template.format(
+            time.time()-self._start_time,
+            epoch,
+            iteration,
+            1 + iteration,
+            iterations,
+            100. * (1+iteration) / iterations,
+            loss_train,
+            acc_train,
+            loss_validation,
+            acc_validation,
+            "BEST" if new_best else ""))
