@@ -177,8 +177,6 @@ class Trainer:
         if self.arguments.train_classifier:
             accuracy = calculate_accuracy(targets, *output).item()
 
-        delete_list([output, batch, targets])
-
         return loss.item(), accuracy
 
     def _evaluate(self) -> Tuple[float, float]:
