@@ -10,7 +10,7 @@ from torch.utils.data import DataLoader
 
 from models import GeneralModel
 from utils.constants import *
-from utils.model_utils import save_models, calculate_accuracy, delete_list, assert_type
+from utils.model_utils import save_models, calculate_accuracy
 from utils.system_utils import setup_directories, save_codebase_of_run
 
 
@@ -49,7 +49,6 @@ class Trainer:
         # assert_type(self.data_loader_train, DataLoader)
         # assert_type(self.optimizer, Optimizer)
         pass
-
 
     def train(self) -> bool:
         """
@@ -115,6 +114,9 @@ class Trainer:
         one epoch implementation
         """
 
+        if not self.arguments.train_classifier:
+            self.loss_function.reset()
+
         progress = []
 
         train_accuracy = 0
@@ -127,7 +129,7 @@ class Trainer:
             train_loss += loss_batch
             train_accuracy += accuracy_batch
 
-            # add to list somehow: todo: make statistic class?
+            # add to list somehow:
             progress.append({"loss": loss_batch, "acc": accuracy_batch})
 
             # calculate amount of batches and walltime passed
@@ -137,7 +139,8 @@ class Trainer:
             # run on validation set and print progress to terminal
             if (batches_passed % self.arguments.eval_freq) == 0:  # todo
                 loss_validation, acc_validation = self._evaluate()
-                self._log(loss_validation, acc_validation, (train_loss / (i+1)), (train_accuracy / (i+1)), batches_passed, float(time_passed.microseconds), len(self.data_loader_train))
+                self._log(loss_validation, acc_validation, (train_loss / (i + 1)), (train_accuracy / (i + 1)),
+                          batches_passed, float(time_passed.microseconds), len(self.data_loader_train))
 
             # check if runtime is expired
             if (time_passed.total_seconds() > (self.arguments.max_training_minutes * 60)) \
@@ -201,16 +204,21 @@ class Trainer:
              loss_train: float,
              acc_train: float,
              batches_done: int,
-             time_passed:  float,
+             time_passed: float,
              len_dataset: int,
              ):
         """
         logs progress to user through tensorboard and terminal
         """
-        self.writer.add_scalar("Accuracy_validation", acc_validation, batches_done, time_passed)
+        if self.arguments.train_classifier:
+            self.writer.add_scalar("Accuracy_validation", acc_validation, batches_done, time_passed)
+            self.writer.add_scalar("Accuracy_train", acc_train, batches_done, time_passed)
+            print(
+                f"Batch: ({batches_done}|{batches_done % len_dataset})/{len_dataset}, Accuracy_validation: {acc_validation}, Loss_validation: {loss_validation}, Accuracy_train: {acc_train}, Loss_train: {loss_train}")
+        else:
+            for key, value in self.loss_function.get_losses().items():
+                self.writer.add_scalar(key, value, batches_done, time_passed)
+            print(
+                f"Batch: ({batches_done}|{batches_done % len_dataset})/{len_dataset}, Loss_validation: {loss_validation}, Loss_train: {loss_train}, Independent losses: {self.loss_function.get_losses()}")
         self.writer.add_scalar("Loss_validation", loss_validation, batches_done, time_passed)
         self.writer.add_scalar("Loss_train", loss_train, batches_done, time_passed)
-        self.writer.add_scalar("Accuracy_train", acc_train, batches_done, time_passed)
-        print(f"Batch: ({batches_done}|{batches_done%len_dataset})/{len_dataset}, Accuracy_validation: {acc_validation}, Loss_validation: {loss_validation}, Accuracy_train: {acc_train}, Loss_train: {loss_train}")
-
-

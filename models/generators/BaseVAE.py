@@ -3,7 +3,13 @@ import torch.nn as nn
 import torch.nn.functional as F
 from torch.nn import Parameter
 
+import numpy as np
+
+import random
+
 from models.GeneralModel import GeneralModel
+from models.losses.ELBO import ELBO
+from utils.constants import SEED, DEVICE
 
 
 class Encoder(nn.Module):
@@ -47,9 +53,9 @@ class Decoder(nn.Module):
         self.z_dim = z_dim
 
         self.decoder_dilations = [1, 2, 4]
-        self.decoder_kernels = [(400, self.z_dim + self.hidden_dim, 3),
+        self.decoder_kernels = [(400, self.z_dim, 3),
                                 (450, 400, 3),
-                                (500, 450, 3)]
+                                (n_in, 450, 3)]
         self.decoder_paddings = [self.effective_k(w, self.decoder_dilations[i]) - 1
                                  for i, (_, _, w) in enumerate(self.decoder_kernels)]
 
@@ -75,9 +81,6 @@ class Decoder(nn.Module):
     def forward(self, x):
         x = x.permute(0, 2, 1)
         for layer, kernel in enumerate(self.kernels):
-
-            print(layer)
-
             # apply conv layer with non-linearity and drop last elements of sequence to perfrom input shifting
             x = F.conv1d(x, kernel,
                          bias=self.biases[layer],
@@ -88,8 +91,8 @@ class Decoder(nn.Module):
             x = x[:, :, :(x_width - self.decoder_paddings[layer])].contiguous()
 
             x = F.relu(x)
-        mean = x
-        return mean.permute(0, 2, 1)
+        mean = x.permute(0, 2, 1)
+        return mean
 
 
 class BaseVAE(GeneralModel):
@@ -103,7 +106,7 @@ class BaseVAE(GeneralModel):
         self.encoder = Encoder(n_channels_in, hidden_dim, z_dim, device=device)
         self.decoder = Decoder(n_channels_in, hidden_dim, z_dim, device=device)
 
-    def forward(self, x: torch.Tensor):  # todo: revisit
+    def forward(self, x: torch.Tensor, _):  # todo: revisit
         # ensure device
         x = x.to(self.device)
 
@@ -129,13 +132,20 @@ class BaseVAE(GeneralModel):
 
 
 if __name__ == '__main__':
-    testbatch = torch.randn((128, 20, 100)) # batch, seq_len, embedding
+    if DEVICE == 'cuda':
+        torch.backends.cudnn.benchmark = False
+        torch.cuda.manual_seed_all(SEED)
+
+    # for reproducibility
+    torch.manual_seed(SEED)
+    np.random.seed(SEED)
+    random.seed(SEED)
+
+    testbatch = torch.randn((128, 20, 100))  # batch, seq_len, embedding
 
     vae = BaseVAE(n_channels_in=100, z_dim=15)
     vae: BaseVAE
-    x = vae.forward(testbatch) + tuple([testbatch])
-    # lossfunc = ELBO()
-    # score = lossfunc.forward(*x)
-    # print(score.shape, score)
-
-    # F.conv1d()
+    x = tuple([None]) + vae.forward(testbatch)
+    lossfunc = ELBO()
+    score = lossfunc.forward(*x)
+    print(score.shape, score)
