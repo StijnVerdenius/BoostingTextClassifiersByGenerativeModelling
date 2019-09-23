@@ -46,12 +46,11 @@ def main(arguments: argparse.Namespace):
                              num_classes=arguments.num_classes,
                              hidden_dim=arguments.hidden_dim,
                              z_dim=arguments.z_dim,
-                             device=device
+                             device=device,
                              lstm_file=arguments.classifier_dir,
                              vae_files=arguments.vaes_dir,
                              input_dim=arguments.embedding_size)
     model.to(device)
-
 
     # if we are in train mode..
     if arguments.test_mode:
