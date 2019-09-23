@@ -7,6 +7,8 @@ import numpy as np
 
 import random
 
+from torch.utils.data import DataLoader
+
 from models.GeneralModel import GeneralModel
 from models.datasets.CheckDataLoader import CheckDataLoader
 from models.losses.ELBO import ELBO
@@ -163,6 +165,8 @@ def _test_sample_vae():
 
     vae.load_state_dict(state_dict)
 
+    vae.eval()
+
     y = vae.sample()
 
     data = CheckDataLoader()
@@ -184,12 +188,73 @@ def _test_vae_forward():
 
     vae = BaseVAE(n_channels_in=100, hidden_dim=128, z_dim=128)
     vae: BaseVAE
+    vae.eval()
 
     x = tuple([None]) + vae.forward(testbatch, None)
     lossfunc = ELBO()
     score = lossfunc.forward(*x)
     print(score.shape, score)
 
+
+def _test_grouping_vae():
+    vae = BaseVAE(n_channels_in=106, hidden_dim=128, z_dim=128)
+    vae: BaseVAE
+
+    datamanager = DataManager("./local_data/results/spamham")
+
+    loaded = datamanager.load_python_obj("models/KILLED_at_epoch_2")
+
+    state_dict = 0
+    for state_dict in loaded.values():
+        state_dict = state_dict
+
+    data = CheckDataLoader()
+
+    vae.load_state_dict(state_dict)
+    vae.eval()
+
+    resultdict = {}
+
+    for x in DataLoader(data, batch_size=1):
+
+        mean = vae.forward(x[0], None)[0].detach()
+        mean: torch.Tensor
+        try:
+            resultdict[x[1].item()] = torch.cat((mean, resultdict[x[1].item()]), dim=0)
+        except:
+            resultdict[x[1].item()] = mean
+
+    a = (resultdict[0].mean(dim=(1,0)), resultdict[0].var(dim=(1,0)))
+    b = (resultdict[1].mean(dim=(1,0)), resultdict[1].var(dim=(1,0)))
+
+    print(a,b)
+    print(a[0]-b[0])
+    print(b[1]- a[1])
+    print((a[0]-b[0]).sum())
+    print((a[1]-b[1]).sum())
+
+
+def _test_reconstruction_vae():
+    vae = BaseVAE(n_channels_in=106, hidden_dim=128, z_dim=128)
+    vae: BaseVAE
+
+    datamanager = DataManager("./local_data/results/spamham")
+
+    loaded = datamanager.load_python_obj("models/KILLED_at_epoch_2")
+
+    state_dict = 0
+    for state_dict in loaded.values():
+        state_dict = state_dict
+
+    data = CheckDataLoader()
+
+    vae.load_state_dict(state_dict)
+    vae.eval()
+
+
+    for x in DataLoader(data, batch_size=1):
+        recon = vae.forward(x[0], None)[2]
+        print(nn.MSELoss(reduction="mean")(recon.float(), x[0].contiguous().view((1, -1)).float()), x[0], recon)
 
 
 
@@ -206,4 +271,6 @@ if __name__ == '__main__':
 
     _test_sample_vae()
     _test_vae_forward()
+    _test_grouping_vae()
+    _test_reconstruction_vae()
 
