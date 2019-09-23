@@ -18,6 +18,7 @@ from utils.dataloader_utils import pad_and_sort_batch
 import numpy as np
 import random
 
+
 def main(arguments: argparse.Namespace):
     """ where the magic happens """
     if DEVICE == 'cuda':
@@ -33,24 +34,30 @@ def main(arguments: argparse.Namespace):
         torch.cuda.manual_seed_all(SEED)
 
     # get model from models-folder (name of class has to be identical to filename)
-    model = find_right_model((CLASS_DIR if arguments.train_classifier else GEN_DIR),
-                             (arguments.classifier if arguments.train_classifier else arguments.generator),
+    model = find_right_model((CLASS_DIR if arguments.train_classifier else
+                              (GEN_DIR if not arguments.combined_classification else CLASS_DIR)),
+                             (arguments.classifier if arguments.train_classifier else
+                              (arguments.generator if not arguments.combined_classification
+                               else arguments.classifier)),
                              n_channels_in=arguments.embedding_size,
                              num_classes=arguments.num_classes,
                              hidden_dim=arguments.hidden_dim,
                              z_dim=arguments.z_dim,
-                             device=DEVICE
-                             )
+                             device=DEVICE,
+                             lstm_file=arguments.classifier_dir,
+                             vae_files=arguments.vaes_dir,
+                             input_dim=arguments.embedding_size)
     model.to(DEVICE)
 
-
+    # print((arguments.classifier if arguments.train_classifier else   (arguments.generator if not arguments.combined_classification  else arguments.classifier))       )
+    # print(arguments.combin)
     # if we are in train mode..
     if arguments.test_mode:
         # we are in test mode
         data_loader_test = load_data_set(arguments, TEST_SET)
 
-        tester = Tester()
-        raise NotImplementedError
+        tester = Tester(model, data_loader_test)
+        tester.test()
         pass  # todo: testing functionality, loading pretrained model
     else:
 
@@ -84,7 +91,7 @@ def parse() -> argparse.Namespace:
     # int
     parser.add_argument('--epochs', default=500, type=int, help='max number of epochs')
     parser.add_argument('--eval_freq', default=20, type=int, help='evaluate every x batches')
-    parser.add_argument('--saving_freq', default=50, type=int, help='save every x epochs')
+    parser.add_argument('--saving_freq', default=1, type=int, help='save every x epochs')
     parser.add_argument('--batch_size', default=64, type=int, help='size of batches')
     parser.add_argument('--embedding_size', default=256, type=int, help='size of embeddings')  # todo
     parser.add_argument('--num_classes', default=5, type=int, help='size of embeddings')  # todo
@@ -108,6 +115,11 @@ def parse() -> argparse.Namespace:
     # bool
     parser.add_argument('--test-mode', action='store_true', help='start in train_mode')
     parser.add_argument('--train-classifier', action='store_true', help='train a classifier')
+    parser.add_argument('--combined_classification', action='store_true', help='combined classification')
+
+    # combined test stuff
+    parser.add_argument('--classifier_dir', default="", type=str, help='classifier state-dict dir')
+    parser.add_argument('--vaes_dir', default="", type=str, help='vaes state-dict dir. Give names separated by commas')
 
     # todo: add whatever you like
 

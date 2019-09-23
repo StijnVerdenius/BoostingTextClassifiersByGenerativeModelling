@@ -27,8 +27,6 @@ class CombinedClassifier(GeneralModel):
                                                 device=device
                                                 ).to(device)
 
-        self.base_classifier.load_state_dict(torch.load(lstm_file))
-
         self.vae_classifier = find_right_model(CLASS_DIR,
                                                'VAEClassifier',
                                                generator_class=generator_class,
@@ -39,8 +37,11 @@ class CombinedClassifier(GeneralModel):
                                                hidden_dim=hidden_dim, z_dim=z_dim,
                                                ).to(device)
 
-    def forward(self, inp):
-        out_base = self.base_classifier.forward(inp.detach())  # need to put through softmax
+        lstm_file = os.path.join(GITIGNORED_DIR, RESULTS_DIR, lstm_file)
+        self.base_classifier.load_state_dict(torch.load(lstm_file))
+
+    def forward(self, inp, lengths):
+        out_base = self.base_classifier.forward(inp.detach(), lengths.detach())  # need to put through softmax
         out_base_class_scores = out_base.log_softmax(dim=-1)
 
         out_vaes_loss_per_class = self.vae_classifier.forward(inp)
@@ -52,4 +53,8 @@ class CombinedClassifier(GeneralModel):
 
         combined_score = out_base_class_scores  # todo: what to do? check how scores are
         return combined_score, out_base_class_scores, out_vaes_loss_per_class
+
+        # todo keep in mind that scores should be as if they're probabilities, meaning for
+        # classification we take argmax and classify directly
+
 

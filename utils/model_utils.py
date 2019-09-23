@@ -61,8 +61,8 @@ def save_models(models: List[nn.Module],
 
 
 def calculate_accuracy(targets, output, *ignored):
-    probabilities = output.log_softmax(dim=-1)
-    _, classifications = probabilities.detach().max(dim=-1)
+    output = output.log_softmax(dim=-1)
+    _, classifications = output.detach().max(dim=-1)
     return (targets.eq(classifications)).float().mean()
 
 

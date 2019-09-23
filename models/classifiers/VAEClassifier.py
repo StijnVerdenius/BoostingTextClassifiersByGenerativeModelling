@@ -9,7 +9,7 @@ class VAEClassifier(GeneralModel):
 
     def __init__(self,
                  input_dim, hidden_dim, z_dim,
-                 vae_files=[],
+                 vae_files='',
                  n_channels_in=(0),
                  device="cpu",
                  loss='ELBO',  # if we dont write alternatives, we'll never need to change these two
@@ -17,19 +17,27 @@ class VAEClassifier(GeneralModel):
                  **kwargs):
 
         super(VAEClassifier, self).__init__(n_channels_in, device, **kwargs)
-
+        vae_files = vae_files.split(',')
         self.loss_func = find_right_model(LOSS_DIR, loss).to(device)
         self.models = []
         for vae_file in vae_files:
+            print(vae_file)
+            vae_file = os.path.join(GITIGNORED_DIR, RESULTS_DIR, vae_file)
             self.models.append(find_right_model(GEN_DIR,
                                                 generator_class,
                                                 hidden_dim=hidden_dim,
                                                 z_dim=z_dim,
+                                                n_channels_in=input_dim,
                                                 input_dim=input_dim,
                                                 device=device
-                                                )).to(device)
-
-            self.models[-1].load_state_dict(torch.load(vae_file))
+                                                ).to(device))
+            print(vae_file)
+            datamanager = DataManager(vae_file)
+            loaded = datamanager.load_python_obj(os.path.join('models', 'KILLED_at_epoch_73'))
+            state_dict = 0
+            for state_dict in loaded.values():
+                state_dict = state_dict
+            self.models[-1].load_state_dict(state_dict)
 
     def forward(self, inp):
         losses = []  # todo make sure one forward doesn't affect the other? or the loss?
@@ -37,3 +45,4 @@ class VAEClassifier(GeneralModel):
             output = model.forward(inp.detach())
             losses.append(self.loss_func.forward(_, *output))
         return losses
+

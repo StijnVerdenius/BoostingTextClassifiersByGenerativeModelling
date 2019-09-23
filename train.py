@@ -171,7 +171,7 @@ class Trainer:
 
         if train_mode:
             loss.backward()
-            # torch.nn.utils.clip_grad_norm_(self.model.parameters(), max_norm=5.0)
+            torch.nn.utils.clip_grad_norm_(self.model.parameters(), max_norm=5.0)
             self.optimizer.step()
 
         accuracy = 0
