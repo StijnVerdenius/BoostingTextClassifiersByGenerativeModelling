@@ -89,7 +89,7 @@ def parse() -> argparse.Namespace:
     parser.add_argument('--embedding_size', default=256, type=int, help='size of embeddings')  # todo
     parser.add_argument('--num_classes', default=5, type=int, help='size of embeddings')  # todo
     parser.add_argument('--hidden_dim', default=128, type=int, help='size of batches')
-    parser.add_argument('--z_dim', default=128, type=int, help='size of batches')
+    parser.add_argument('--z_dim', default=32, type=int, help='size of batches')
     parser.add_argument('--max_training_minutes', default=24 * 60, type=int,
                         help='max mins of training be4 save-and-kill')
 

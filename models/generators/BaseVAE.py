@@ -16,6 +16,8 @@ from utils.constants import SEED, DEVICE
 from utils.data_manager import DataManager
 from utils.system_utils import ensure_current_directory
 
+######## inspired by; https://github.com/kefirski/contiguous-succotash
+
 
 class Encoder(nn.Module):
 
@@ -57,10 +59,10 @@ class Decoder(nn.Module):
         self.hidden_dim = hidden_dim
         self.z_dim = z_dim
 
-        self.decoder_dilations = [1, 2, 4]
-        self.decoder_kernels = [(400, self.z_dim, 3),
-                                (450, 400, 3),
-                                (n_in, 450, 3)]
+        self.decoder_dilations = [1, 4]
+        self.decoder_kernels = [(hidden_dim, self.z_dim, 3),
+                                # (hidden_dim, hidden_dim, 3),
+                                (n_in, hidden_dim, 3)]
         self.decoder_paddings = [self.effective_k(w, self.decoder_dilations[i]) - 1
                                  for i, (_, _, w) in enumerate(self.decoder_kernels)]
 
@@ -112,6 +114,7 @@ class BaseVAE(GeneralModel):
         self.decoder = Decoder(n_channels_in, hidden_dim, z_dim, device=device)
 
     def forward(self, x: torch.Tensor, _):  # todo: revisit
+
         # ensure device
         x = x.to(self.device)
 
@@ -137,7 +140,7 @@ class BaseVAE(GeneralModel):
 
     def sample(self):
 
-        z = torch.randn((self.z_dim, 20, self.hidden_dim))
+        z = torch.randn((20, self.hidden_dim, self.z_dim))
 
         x = self.decoder.forward(z)
 
@@ -152,12 +155,12 @@ class BaseVAE(GeneralModel):
 
 
 def _test_sample_vae():
-    vae = BaseVAE(n_channels_in=106, hidden_dim=128, z_dim=128)
+    vae = BaseVAE(n_channels_in=106, hidden_dim=128, z_dim=32)
     vae: BaseVAE
 
-    datamanager = DataManager("./local_data/results/spamham")
+    datamanager = DataManager("./local_data/results/appel")
 
-    loaded = datamanager.load_python_obj("models/KILLED_at_epoch_2")
+    loaded = datamanager.load_python_obj("models/appel")
 
     state_dict = 0
     for state_dict in loaded.values():
@@ -270,7 +273,7 @@ if __name__ == '__main__':
     random.seed(SEED)
 
     _test_sample_vae()
-    _test_vae_forward()
-    _test_grouping_vae()
-    _test_reconstruction_vae()
+    # _test_vae_forward()
+    # _test_grouping_vae()
+    # _test_reconstruction_vae()
 
