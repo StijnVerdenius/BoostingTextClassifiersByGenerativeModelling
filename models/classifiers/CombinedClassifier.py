@@ -57,13 +57,20 @@ class CombinedClassifier(GeneralModel):
 
         # todo combine scores somehow?
         # lowest loss is the best don't forget. todo, take inv or neg?
+        combined_score = self.joint_probability(out_base_class_scores,
+                                                out)  # todo: what to do? check how scores are
+
         print('lstm', out_base_class_scores)
         print('vreg', out_vaes_regul)
         print('vrec', out_vaes_reconst)
-        combined_score = out_base_class_scores  # todo: what to do? check how scores are
+        print('comb', combined_score)
+
         return combined_score, (out_base_class_scores, out_vaes_regul, out_vaes_reconst)
 
         # todo keep in mind that scores should be as if they're probabilities, meaning for
         # classification we take argmax and classify directly
 
-
+    def joint_probability(self, pxy, regul, recon):
+        elbo = - regul+recon
+        approach_px = torch.exp(elbo)
+        return pxy*approach_px

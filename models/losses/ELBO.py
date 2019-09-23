@@ -3,6 +3,7 @@ import torch.nn as nn
 
 from models.GeneralModel import GeneralModel
 
+######## inspired by; https://github.com/kefirski/contiguous-succotash
 
 class ELBO(GeneralModel):
 

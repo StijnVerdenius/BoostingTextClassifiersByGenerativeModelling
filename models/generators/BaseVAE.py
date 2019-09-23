@@ -7,12 +7,16 @@ import numpy as np
 
 import random
 
+from torch.utils.data import DataLoader
+
 from models.GeneralModel import GeneralModel
 from models.datasets.CheckDataLoader import CheckDataLoader
 from models.losses.ELBO import ELBO
 from utils.constants import SEED, DEVICE
 from utils.data_manager import DataManager
 from utils.system_utils import ensure_current_directory
+
+######## inspired by; https://github.com/kefirski/contiguous-succotash
 
 
 class Encoder(nn.Module):
@@ -55,10 +59,10 @@ class Decoder(nn.Module):
         self.hidden_dim = hidden_dim
         self.z_dim = z_dim
 
-        self.decoder_dilations = [1, 2, 4]
-        self.decoder_kernels = [(400, self.z_dim, 3),
-                                (450, 400, 3),
-                                (n_in, 450, 3)]
+        self.decoder_dilations = [1, 4]
+        self.decoder_kernels = [(hidden_dim, self.z_dim, 3),
+                                # (hidden_dim, hidden_dim, 3),
+                                (n_in, hidden_dim, 3)]
         self.decoder_paddings = [self.effective_k(w, self.decoder_dilations[i]) - 1
                                  for i, (_, _, w) in enumerate(self.decoder_kernels)]
 
@@ -110,6 +114,7 @@ class BaseVAE(GeneralModel):
         self.decoder = Decoder(n_channels_in, hidden_dim, z_dim, device=device)
 
     def forward(self, x: torch.Tensor, _):  # todo: revisit
+
         # ensure device
         x = x.to(self.device)
 
@@ -135,7 +140,7 @@ class BaseVAE(GeneralModel):
 
     def sample(self):
 
-        z = torch.randn((self.z_dim, 20, self.hidden_dim))
+        z = torch.randn((20, self.hidden_dim, self.z_dim))
 
         x = self.decoder.forward(z)
 
@@ -150,18 +155,20 @@ class BaseVAE(GeneralModel):
 
 
 def _test_sample_vae():
-    vae = BaseVAE(n_channels_in=106, hidden_dim=128, z_dim=128)
+    vae = BaseVAE(n_channels_in=106, hidden_dim=128, z_dim=32)
     vae: BaseVAE
 
-    datamanager = DataManager("./local_data/results/spamham")
+    datamanager = DataManager("./local_data/results/appel")
 
-    loaded = datamanager.load_python_obj("models/KILLED_at_epoch_2")
+    loaded = datamanager.load_python_obj("models/appel")
 
     state_dict = 0
     for state_dict in loaded.values():
         state_dict = state_dict
 
     vae.load_state_dict(state_dict)
+
+    vae.eval()
 
     y = vae.sample()
 
@@ -184,12 +191,73 @@ def _test_vae_forward():
 
     vae = BaseVAE(n_channels_in=100, hidden_dim=128, z_dim=128)
     vae: BaseVAE
+    vae.eval()
 
     x = tuple([None]) + vae.forward(testbatch, None)
     lossfunc = ELBO()
     score = lossfunc.forward(*x)
     print(score.shape, score)
 
+
+def _test_grouping_vae():
+    vae = BaseVAE(n_channels_in=106, hidden_dim=128, z_dim=128)
+    vae: BaseVAE
+
+    datamanager = DataManager("./local_data/results/spamham")
+
+    loaded = datamanager.load_python_obj("models/KILLED_at_epoch_2")
+
+    state_dict = 0
+    for state_dict in loaded.values():
+        state_dict = state_dict
+
+    data = CheckDataLoader()
+
+    vae.load_state_dict(state_dict)
+    vae.eval()
+
+    resultdict = {}
+
+    for x in DataLoader(data, batch_size=1):
+
+        mean = vae.forward(x[0], None)[0].detach()
+        mean: torch.Tensor
+        try:
+            resultdict[x[1].item()] = torch.cat((mean, resultdict[x[1].item()]), dim=0)
+        except:
+            resultdict[x[1].item()] = mean
+
+    a = (resultdict[0].mean(dim=(1,0)), resultdict[0].var(dim=(1,0)))
+    b = (resultdict[1].mean(dim=(1,0)), resultdict[1].var(dim=(1,0)))
+
+    print(a,b)
+    print(a[0]-b[0])
+    print(b[1]- a[1])
+    print((a[0]-b[0]).sum())
+    print((a[1]-b[1]).sum())
+
+
+def _test_reconstruction_vae():
+    vae = BaseVAE(n_channels_in=106, hidden_dim=128, z_dim=128)
+    vae: BaseVAE
+
+    datamanager = DataManager("./local_data/results/spamham")
+
+    loaded = datamanager.load_python_obj("models/KILLED_at_epoch_2")
+
+    state_dict = 0
+    for state_dict in loaded.values():
+        state_dict = state_dict
+
+    data = CheckDataLoader()
+
+    vae.load_state_dict(state_dict)
+    vae.eval()
+
+
+    for x in DataLoader(data, batch_size=1):
+        recon = vae.forward(x[0], None)[2]
+        print(nn.MSELoss(reduction="mean")(recon.float(), x[0].contiguous().view((1, -1)).float()), x[0], recon)
 
 
 
@@ -205,5 +273,7 @@ if __name__ == '__main__':
     random.seed(SEED)
 
     _test_sample_vae()
-    _test_vae_forward()
+    # _test_vae_forward()
+    # _test_grouping_vae()
+    # _test_reconstruction_vae()
 
