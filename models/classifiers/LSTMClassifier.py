@@ -28,19 +28,19 @@ class LSTMClassifier(GeneralModel):
                              num_layers=lstm_num_layers, dropout=dropout, batch_first=batch_first,
                              bidirectional=bidirectional)
 
-        self.output_layer_toClass = nn.Linear(hidden_dim*2, num_classes, bias=True)
+        self.output_layer_toClass = nn.Linear(hidden_dim*2, num_classes, bias=False)
 
     def forward(self, x, lengths, h0=None, c0=None):
         # batch_size, seq_length, vocab_size = x.shape  # todo implement check? # must turn 2(seq_len, batch, input_size)
-        # x = x.permute([1, 0, -1]).to(self.device)
+
         x_packed = pack_padded_sequence(x, lengths, batch_first=True)
         # if h0 is None:
         #     h0 = torch.zeros(self.lstm_num_layers*2, batch_size, self.lstm_num_hidden).to(self.device)
         #     c0 = torch.zeros(self.lstm_num_layers*2, batch_size, self.lstm_num_hidden).to(self.device)
 
-        output, _ = self.model(x_packed.float())#, (h0.float(), c0.float()))
+        output, (h, _) = self.model(x_packed.float())#, (h0.float(), c0.float()))
         output, _ = pad_packed_sequence(output, batch_first=True)
 
         output = self.output_layer_toClass(output)
-        return [output[:, -1, :]]  # , (h, c)
+        return [output.sum(dim=1)] # [output[:, -1, :]]  # , (h, c)
         # TODO concerns: take last, or average or sum ????
