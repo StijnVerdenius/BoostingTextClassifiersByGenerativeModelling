@@ -1,12 +1,11 @@
+import random
+
+import numpy as np
 import torch
 import torch.nn as nn
 import torch.nn.functional as F
+from torch.autograd import Variable
 from torch.nn import Parameter
-
-import numpy as np
-
-import random
-
 from torch.utils.data import DataLoader
 
 from models.GeneralModel import GeneralModel
@@ -14,6 +13,7 @@ from models.datasets.CheckDataLoader import CheckDataLoader
 from models.losses.ELBO import ELBO
 from utils.data_manager import DataManager
 from utils.system_utils import ensure_current_directory
+
 
 ######## inspired by; https://github.com/kefirski/contiguous-succotash
 
@@ -129,7 +129,7 @@ class BaseVAE(GeneralModel):
         epsilon: torch.Tensor
 
         # reperimatrization-sample z
-        z = epsilon.__mul__(std).__add__(mean)
+        z = Variable(epsilon.__mul__(std).__add__(mean))
 
         # recosntruct x from z
         self.decoder: Decoder
@@ -138,7 +138,6 @@ class BaseVAE(GeneralModel):
         return mean, std, reconstruction_mean.contiguous().view((batch_size, -1)), x.contiguous().view((batch_size, -1))
 
     def sample(self):
-
         z = torch.randn((20, self.hidden_dim, self.z_dim))
 
         x = self.decoder.forward(z)
@@ -148,9 +147,6 @@ class BaseVAE(GeneralModel):
         y = x.argmax(dim=2)
 
         return y
-
-
-
 
 
 def _test_sample_vae():
@@ -226,14 +222,14 @@ def _test_grouping_vae():
         except:
             resultdict[x[1].item()] = mean
 
-    a = (resultdict[0].mean(dim=(1,0)), resultdict[0].var(dim=(1,0)))
-    b = (resultdict[1].mean(dim=(1,0)), resultdict[1].var(dim=(1,0)))
+    a = (resultdict[0].mean(dim=(1, 0)), resultdict[0].var(dim=(1, 0)))
+    b = (resultdict[1].mean(dim=(1, 0)), resultdict[1].var(dim=(1, 0)))
 
-    print(a,b)
-    print(a[0]-b[0])
-    print(b[1]- a[1])
-    print((a[0]-b[0]).sum())
-    print((a[1]-b[1]).sum())
+    print(a, b)
+    print(a[0] - b[0])
+    print(b[1] - a[1])
+    print((a[0] - b[0]).sum())
+    print((a[1] - b[1]).sum())
 
 
 def _test_reconstruction_vae():
@@ -253,11 +249,9 @@ def _test_reconstruction_vae():
     vae.load_state_dict(state_dict)
     vae.eval()
 
-
     for x in DataLoader(data, batch_size=1):
         recon = vae.forward(x[0], None)[2]
         print(nn.MSELoss(reduction="mean")(recon.float(), x[0].contiguous().view((1, -1)).float()), x[0], recon)
-
 
 
 if __name__ == '__main__':
@@ -276,4 +270,3 @@ if __name__ == '__main__':
     # _test_vae_forward()
     # _test_grouping_vae()
     # _test_reconstruction_vae()
-
