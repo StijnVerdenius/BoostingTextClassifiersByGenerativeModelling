@@ -9,6 +9,8 @@ import argparse
 import sys
 from torch.utils.data import DataLoader
 
+from models.enums.Genre import Genre
+
 from test import Tester
 from train import Trainer
 from utils.constants import *
@@ -57,7 +59,7 @@ def main(arguments: argparse.Namespace):
 
         # get optimizer and loss function
         optimizer = find_right_model(OPTIMS, arguments.optimizer, params=model.parameters(), lr=arguments.learning_rate)
-        loss_function = find_right_model(LOSS_DIR, arguments.loss, some_param="example").to(DEVICE)
+        loss_function = find_right_model(LOSS_DIR, arguments.loss).to(DEVICE)
 
         # train
         trainer = Trainer(data_loader_train, data_loader_validation, model, optimizer, loss_function, arguments)
@@ -68,7 +70,7 @@ def load_data_set(arguments: argparse.Namespace,
                   set_name: str) -> DataLoader:
     """ loads specific dataset as a DataLoader """
 
-    dataset = find_right_model(DATASETS, arguments.dataset_class, folder=arguments.data_folder, set_name=set_name)
+    dataset = find_right_model(DATASETS, arguments.dataset_class, folder=arguments.data_folder, set_name=set_name, genre=Genre.from_str(arguments.genre))
     loader = DataLoader(dataset, shuffle=False, batch_size=arguments.batch_size,
                         collate_fn=pad_and_sort_batch)  # (set_name is TRAIN_SET)
     # todo: revisit and validation checks
@@ -103,6 +105,9 @@ def parse() -> argparse.Namespace:
     parser.add_argument('--data_folder', default=os.path.join('local_data', 'data'), type=str, help='data folder path')
     parser.add_argument('--dataset_class', default="LyricsDataset", type=str, help='dataset name')
     parser.add_argument('--run_name', default="", type=str, help='extra identification for run')
+    parser.add_argument('--genre', type=str, default=None,
+                        help='vae-genre')
+    # parser.add_argument('--genre', default=None, type=Genre, help='vae-genre')
 
     # bool
     parser.add_argument('--test-mode', action='store_true', help='start in train_mode')

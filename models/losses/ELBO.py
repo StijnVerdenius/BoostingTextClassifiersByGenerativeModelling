@@ -4,8 +4,6 @@ import torch.nn as nn
 from models.GeneralModel import GeneralModel
 
 
-# this is a dummy, please make your own versions that inherets from general model and implements forward
-
 class ELBO(GeneralModel):
 
     def __init__(self, device="cpu", **kwargs):
