@@ -117,10 +117,15 @@ class Trainer:
 
         progress = []
 
+        train_accuracy = 0
+        train_loss = 0
+
         for i, (batch, targets, lengths) in enumerate(self.data_loader_train):
 
             # do forward pass and whatnot on batch
             loss_batch, accuracy_batch = self._batch_iteration(batch, targets, lengths)
+            train_loss += loss_batch
+            train_accuracy += accuracy_batch
 
             # add to list somehow: todo: make statistic class?
             progress.append({"loss": loss_batch, "acc": accuracy_batch})
@@ -132,8 +137,7 @@ class Trainer:
             # run on validation set and print progress to terminal
             if (batches_passed % self.arguments.eval_freq) == 0:  # todo
                 loss_validation, acc_validation = self._evaluate()
-                self._log(loss_validation, acc_validation, loss_batch, accuracy_batch, batches_passed, float(time_passed.microseconds), len(self.data_loader_train))
-
+                self._log(loss_validation, acc_validation, (train_loss / (i+1)), (train_accuracy / (i+1)), batches_passed, float(time_passed.microseconds), len(self.data_loader_train))
 
             # check if runtime is expired
             if (time_passed.total_seconds() > (self.arguments.max_training_minutes * 60)) \
@@ -166,7 +170,7 @@ class Trainer:
 
         if train_mode:
             loss.backward()
-            torch.nn.utils.clip_grad_norm(self.model.parameters(), max_norm=5.0)
+            torch.nn.utils.clip_grad_norm_(self.model.parameters(), max_norm=5.0)
             self.optimizer.step()
             self.optimizer.zero_grad()
 
