@@ -58,7 +58,8 @@ class CombinedClassifier(GeneralModel):
         # todo combine scores somehow?
         # lowest loss is the best don't forget. todo, take inv or neg?
         combined_score = self.joint_probability(out_base_class_scores,
-                                                out)  # todo: what to do? check how scores are
+                                                out_vaes_regul,
+                                                out_vaes_reconst)
 
         print('lstm', out_base_class_scores)
         print('vreg', out_vaes_regul)
