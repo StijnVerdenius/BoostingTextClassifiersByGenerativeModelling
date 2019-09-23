@@ -37,7 +37,7 @@ class Tester:
                 # do forward pass and whatnot on batch
                 loss_batch, accuracy_batch = self._batch_iteration(batch, targets, lengths)
 
-                # add to list somehow: todo: make statistic class?
+                # add to list somehow
                 results.append({"loss": loss_batch, "acc": accuracy_batch})
 
 
