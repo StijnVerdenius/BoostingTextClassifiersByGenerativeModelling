@@ -8,8 +8,11 @@ import numpy as np
 import random
 
 from models.GeneralModel import GeneralModel
+from models.datasets.CheckDataLoader import CheckDataLoader
 from models.losses.ELBO import ELBO
 from utils.constants import SEED, DEVICE
+from utils.data_manager import DataManager
+from utils.system_utils import ensure_current_directory
 
 
 class Encoder(nn.Module):
@@ -130,8 +133,68 @@ class BaseVAE(GeneralModel):
 
         return mean, std, reconstruction_mean.contiguous().view((batch_size, -1)), x.contiguous().view((batch_size, -1))
 
+    def sample(self):
+
+        z = torch.randn((self.z_dim, 20, self.hidden_dim))
+
+        x = self.decoder.forward(z)
+
+        x: torch.Tensor
+
+        y = x.argmax(dim=2)
+
+        return y
+
+
+
+
+
+def _test_sample_vae():
+    vae = BaseVAE(n_channels_in=106, hidden_dim=128, z_dim=128)
+    vae: BaseVAE
+
+    datamanager = DataManager("./local_data/results/spamham")
+
+    loaded = datamanager.load_python_obj("models/KILLED_at_epoch_2")
+
+    state_dict = 0
+    for state_dict in loaded.values():
+        state_dict = state_dict
+
+    vae.load_state_dict(state_dict)
+
+    y = vae.sample()
+
+    data = CheckDataLoader()
+
+    vocab = data.vocabulary
+
+    vocab_rev = {value: key for key, value in vocab.items()}
+
+    for sen in y:
+        string = ""
+        for num in sen:
+            string += (vocab_rev[num.item()])
+
+        print(string)
+
+
+def _test_vae_forward():
+    testbatch = torch.randn((128, 20, 100))  # batch, seq_len, embedding
+
+    vae = BaseVAE(n_channels_in=100, hidden_dim=128, z_dim=128)
+    vae: BaseVAE
+
+    x = tuple([None]) + vae.forward(testbatch, None)
+    lossfunc = ELBO()
+    score = lossfunc.forward(*x)
+    print(score.shape, score)
+
+
+
 
 if __name__ == '__main__':
+    ensure_current_directory()
     if DEVICE == 'cuda':
         torch.backends.cudnn.benchmark = False
         torch.cuda.manual_seed_all(SEED)
@@ -141,11 +204,6 @@ if __name__ == '__main__':
     np.random.seed(SEED)
     random.seed(SEED)
 
-    testbatch = torch.randn((128, 20, 100))  # batch, seq_len, embedding
+    _test_sample_vae()
+    _test_vae_forward()
 
-    vae = BaseVAE(n_channels_in=100, z_dim=15)
-    vae: BaseVAE
-    x = tuple([None]) + vae.forward(testbatch)
-    lossfunc = ELBO()
-    score = lossfunc.forward(*x)
-    print(score.shape, score)

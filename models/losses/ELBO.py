@@ -8,7 +8,7 @@ class ELBO(GeneralModel):
 
     def __init__(self, device="cpu", **kwargs):
         super(ELBO, self).__init__(0, device, **kwargs)
-        self.losses = {}
+        self.losses = {"recon": 0, "reg": 0}
         self.evaluations = 0
 
     def forward(self, _, mean, std, reconstructed_mean, x):  # todo: revisit
