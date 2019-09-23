@@ -1,5 +1,7 @@
 import torch
 import torch.nn as nn
+import torch.nn.functional as F
+from torch.nn import Parameter
 
 from models.GeneralModel import GeneralModel
 from models.losses.ELBO import ELBO
@@ -42,6 +44,19 @@ class Decoder(nn.Module):
         self.hidden_dim = hidden_dim
         self.z_dim = z_dim
 
+        self.decoder_kernels = []
+        self.decoder_paddings = []
+        self.decoder_dilations = []
+
+
+        self.kernels = [Parameter(torch.Tensor(out_chan, in_chan, width).normal_(0, 0.05))
+                        for out_chan, in_chan, width in self.decoder_kernels]
+        self._add_to_parameters(self.kernels, 'decoder_kernel')
+
+        self.biases = [Parameter(torch.Tensor(out_chan).normal_(0, 0.05))
+                       for out_chan, in_chan, width in self.decoder_kernels]
+        self._add_to_parameters(self.biases, 'decoder_bias')
+
         self.layers = nn.Sequential(
             nn.Conv1d(in_channels=z_dim, out_channels=hidden_dim, kernel_size=1, dilation=2),
             nn.ReLU(),
@@ -49,9 +64,24 @@ class Decoder(nn.Module):
             nn.Sigmoid(),
         ).to(device)
 
+    def _add_to_parameters(self, parameters, name):
+        for i, parameter in enumerate(parameters):
+            self.register_parameter(name='{}-{}'.format(name, i), param=parameter)
+
     def forward(self, x):
         x = x.permute(0, 2, 1)
-        mean = self.layers(x)
+        for layer, kernel in enumerate(self.kernels):
+            # apply conv layer with non-linearity and drop last elements of sequence to perfrom input shifting
+            x = F.conv1d(x, kernel,
+                         bias=self.biases[layer],
+                         dilation=self.decoder_dilations[layer],
+                         padding=self.decoder_paddings[layer])
+
+            x_width = x.size()[2]
+            x = x[:, :, :(x_width - self.decoder_paddings[layer])].contiguous()
+
+            x = F.relu(x)
+        mean = x
         return mean.permute(0, 2, 1)
 
 
@@ -100,3 +130,5 @@ if __name__ == '__main__':
     lossfunc = ELBO()
     score = lossfunc.forward(*x)
     print(score.shape, score)
+
+    # F.conv1d()

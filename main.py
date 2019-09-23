@@ -86,15 +86,15 @@ def parse() -> argparse.Namespace:
     parser.add_argument('--eval_freq', default=20, type=int, help='evaluate every x batches')
     parser.add_argument('--saving_freq', default=50, type=int, help='save every x epochs')
     parser.add_argument('--batch_size', default=64, type=int, help='size of batches')
-    parser.add_argument('--embedding_size', default=106, type=int, help='size of embeddings')  # todo
-    parser.add_argument('--num_classes', default=2, type=int, help='size of embeddings')  # todo
-    parser.add_argument('--hidden_dim', default=100, type=int, help='size of batches')
-    parser.add_argument('--z_dim', default=100, type=int, help='size of batches')
+    parser.add_argument('--embedding_size', default=256, type=int, help='size of embeddings')  # todo
+    parser.add_argument('--num_classes', default=5, type=int, help='size of embeddings')  # todo
+    parser.add_argument('--hidden_dim', default=128, type=int, help='size of batches')
+    parser.add_argument('--z_dim', default=128, type=int, help='size of batches')
     parser.add_argument('--max_training_minutes', default=24 * 60, type=int,
                         help='max mins of training be4 save-and-kill')
 
     # float
-    parser.add_argument('--learning_rate', default=1e-4, type=float, help='learning rate')
+    parser.add_argument('--learning_rate', default=1e-3, type=float, help='learning rate')
 
     # string
     parser.add_argument('--classifier', default="LSTMClassifier", type=str, help='classifier model name')
