@@ -1,5 +1,6 @@
 import argparse
 import sys
+import time
 from datetime import datetime
 from typing import List, Tuple
 
@@ -13,10 +14,8 @@ from utils.constants import *
 from utils.model_utils import save_models, calculate_accuracy
 from utils.system_utils import setup_directories, save_codebase_of_run
 
-import time
 
 class Trainer:
-
 
     def __init__(self,
                  data_loader_train: DataLoader,
@@ -33,9 +32,10 @@ class Trainer:
         self.model = model
         self.data_loader_validation = data_loader_validation
         self.data_loader_train = data_loader_train
-        self._log_header = '  Time Epoch Iteration    Progress (%Epoch) | Train Loss Train Acc. | Valid Loss Valid Acc. | Best'
-        self._log_template = ' '.join('{:>6.0f},{:>5.0f},{:>9.0f},{:>5.0f}/{:<5.0f} {:>7.0f}%,| {:>10.6f} {:>10.6f} | {:>10.6f} {:>10.6f} | {:>4s}'.split(','))
-        self._start_time = time.time()
+        self._log_header = '  Time Epoch Iteration    Progress (%Epoch) | Train Loss Train Acc. | Valid Loss Valid Acc. | Best | VAE-stuff'
+        self._log_template = ' '.join(
+            '{:>6.0f},{:>5.0f},{:>9.0f},{:>5.0f}/{:<5.0f} {:>7.0f}%,| {:>10.6f} {:>10.6f} | {:>10.6f} {:>10.6f} | {:>4s} | {:>4s}'.split(
+                ','))
 
         # validate input to class
         self._validate_self()
@@ -45,6 +45,8 @@ class Trainer:
 
         # initialize tensorboardx
         self.writer = SummaryWriter(os.path.join(GITIGNORED_DIR, RESULTS_DIR, DATA_MANAGER.stamp, SUMMARY_DIR))
+
+        self._start_time = time.time()
 
     def _validate_self(self):
         # assert_type(self.arguments, argparse.Namespace)
@@ -109,9 +111,9 @@ class Trainer:
         return True
 
     def _epoch_iteration(
-        self,
-        epoch_num: int,
-        best_accuracy: float) -> Tuple[List, float]:
+            self,
+            epoch_num: int,
+            best_accuracy: float) -> Tuple[List, float]:
         """
         one epoch implementation
         """
@@ -142,9 +144,9 @@ class Trainer:
 
             # run on validation set and print progress to terminal
             # if we have eval_frequency or if we have finished the epoch
-            if (batches_passed % self.arguments.eval_freq) == 0 or (i+1 == data_loader_length):
+            if (batches_passed % self.arguments.eval_freq) == 0 or (i + 1 == data_loader_length):
                 loss_validation, acc_validation = self._evaluate()
-                
+
                 new_best = False
                 if best_accuracy < acc_validation:
                     save_models([self.model], 'model_best')
@@ -154,11 +156,10 @@ class Trainer:
                 self._log(
                     loss_validation,
                     acc_validation,
-                    (train_loss / (i+1)),
-                    (train_accuracy / (i+1)),
+                    (train_loss / (i + 1)),
+                    (train_accuracy / (i + 1)),
                     batches_passed,
                     float(time_passed.microseconds),
-                    len(self.data_loader_train),
                     epoch_num,
                     i,
                     data_loader_length,
@@ -230,7 +231,6 @@ class Trainer:
              acc_train: float,
              batches_done: int,
              time_passed: float,
-             len_dataset: int,
              epoch: int,
              iteration: int,
              iterations: int,
@@ -241,25 +241,25 @@ class Trainer:
         if self.arguments.train_classifier:
             self.writer.add_scalar("Accuracy_validation", acc_validation, batches_done, time_passed)
             self.writer.add_scalar("Accuracy_train", acc_train, batches_done, time_passed)
-            
-            print(self._log_template.format(
-                time.time()-self._start_time,
-                epoch,
-                iteration,
-                1 + iteration,
-                iterations,
-                100. * (1+iteration) / iterations,
-                loss_train,
-                acc_train,
-                loss_validation,
-                acc_validation,
-                "BEST" if new_best else ""))
 
         else:
             for key, value in self.loss_function.get_losses().items():
                 self.writer.add_scalar(key, value, batches_done, time_passed)
-            print(
-                f"Batch: ({batches_done}|{batches_done % len_dataset})/{len_dataset}, Loss_validation: {loss_validation}, Loss_train: {loss_train}, Independent losses: {self.loss_function.get_losses()}")
+
+        print(self._log_template.format(
+            time.time() - self._start_time,
+            epoch,
+            iteration,
+            1 + iteration,
+            iterations,
+            100. * (1 + iteration) / iterations,
+            loss_train,
+            acc_train,
+            loss_validation,
+            acc_validation,
+            "BEST" if new_best else "",
+            "" if self.arguments.train_classifier else str(self.loss_function.get_losses())
+        ))
+
         self.writer.add_scalar("Loss_validation", loss_validation, batches_done, time_passed)
         self.writer.add_scalar("Loss_train", loss_train, batches_done, time_passed)
-        
