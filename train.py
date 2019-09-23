@@ -23,7 +23,8 @@ class Trainer:
                  model: GeneralModel,
                  optimizer: Optimizer,
                  loss_function: GeneralModel,
-                 args: argparse.Namespace
+                 args: argparse.Namespace,
+                 device="cpu"
                  ):
 
         self.arguments = args
@@ -36,6 +37,10 @@ class Trainer:
         self._log_template = ' '.join(
             '{:>6.0f},{:>5.0f},{:>9.0f},{:>5.0f}/{:<5.0f} {:>7.0f}%,| {:>10.6f} {:>10.6f} | {:>10.6f} {:>10.6f} | {:>4s} | {:>4s}'.split(
                 ','))
+        self._log_header = '  Time Epoch Iteration    Progress (%Epoch) | Train Loss Train Acc. | Valid Loss Valid Acc. | Best'
+        self._log_template = ' '.join('{:>6.0f},{:>5.0f},{:>9.0f},{:>5.0f}/{:<5.0f} {:>7.0f}%,| {:>10.6f} {:>10.6f} | {:>10.6f} {:>10.6f} | {:>4s}'.split(','))
+        self._start_time = time.time()
+        self._device = device
 
         # validate input to class
         self._validate_self()
@@ -182,9 +187,9 @@ class Trainer:
         runs forward pass on batch and backward pass if in train_mode
         """
 
-        batch = batch.to(DEVICE)
-        targets = targets.to(DEVICE)
-        lengths = lengths.to(DEVICE)
+        batch = batch.to(self._device)
+        targets = targets.to(self._device)
+        lengths = lengths.to(self._device)
 
         if train_mode:
             self.model.train()
@@ -197,6 +202,7 @@ class Trainer:
 
         if train_mode:
             loss.backward()
+            torch.nn.utils.clip_grad_norm_(self.model.parameters(), max_norm=5.0)
             self.optimizer.step()
 
         accuracy = 0

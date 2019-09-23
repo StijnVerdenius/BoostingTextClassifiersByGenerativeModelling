@@ -23,33 +23,42 @@ import random
 
 def main(arguments: argparse.Namespace):
     """ where the magic happens """
-    if DEVICE == 'cuda':
-        torch.backends.cudnn.benchmark = False
-        torch.cuda.manual_seed_all(SEED)
+    device = args.device
+    if args.device == None:
+        device = "cuda" if torch.cuda.is_available() else "cpu"
 
     # for reproducibility
-    torch.manual_seed(SEED)
-    np.random.seed(SEED)
-    random.seed(SEED)
+    torch.manual_seed(args.seed)
+    np.random.seed(args.seed)
+    random.seed(args.seed)
+
+    if device == 'cuda':
+        torch.backends.cudnn.benchmark = False
+        torch.cuda.manual_seed_all(args.seed)
 
     # get model from models-folder (name of class has to be identical to filename)
-    model = find_right_model((CLASS_DIR if arguments.train_classifier else GEN_DIR),
-                             (arguments.classifier if arguments.train_classifier else arguments.generator),
+    model = find_right_model((CLASS_DIR if arguments.train_classifier else
+                              (GEN_DIR if not arguments.combined_classification else CLASS_DIR)),
+                             (arguments.classifier if arguments.train_classifier else
+                              (arguments.generator if not arguments.combined_classification
+                               else arguments.classifier)),
                              n_channels_in=arguments.embedding_size,
                              num_classes=arguments.num_classes,
                              hidden_dim=arguments.hidden_dim,
                              z_dim=arguments.z_dim,
-                             device=DEVICE
-                             )
-    model.to(DEVICE)
+                             device=device,
+                             lstm_file=arguments.classifier_dir,
+                             vae_files=arguments.vaes_dir,
+                             input_dim=arguments.embedding_size)
+    model.to(device)
 
     # if we are in train mode..
     if arguments.test_mode:
         # we are in test mode
         data_loader_test = load_data_set(arguments, TEST_SET)
 
-        tester = Tester()
-        raise NotImplementedError
+        tester = Tester(model, data_loader_test)
+        tester.test()
         pass  # todo: testing functionality, loading pretrained model
     else:
 
@@ -59,10 +68,10 @@ def main(arguments: argparse.Namespace):
 
         # get optimizer and loss function
         optimizer = find_right_model(OPTIMS, arguments.optimizer, params=model.parameters(), lr=arguments.learning_rate)
-        loss_function = find_right_model(LOSS_DIR, arguments.loss).to(DEVICE)
+        loss_function = find_right_model(LOSS_DIR, arguments.loss).to(device)
 
         # train
-        trainer = Trainer(data_loader_train, data_loader_validation, model, optimizer, loss_function, arguments)
+        trainer = Trainer(data_loader_train, data_loader_validation, model, optimizer, loss_function, arguments, device)
         trainer.train()
 
 
@@ -83,12 +92,12 @@ def parse() -> argparse.Namespace:
 
     # int
     parser.add_argument('--epochs', default=500, type=int, help='max number of epochs')
-    parser.add_argument('--eval_freq', default=5, type=int, help='evaluate every x batches')
-    parser.add_argument('--saving_freq', default=50, type=int, help='save every x epochs')
+    parser.add_argument('--eval_freq', default=20, type=int, help='evaluate every x batches')
+    parser.add_argument('--saving_freq', default=1, type=int, help='save every x epochs')
     parser.add_argument('--batch_size', default=64, type=int, help='size of batches')
     parser.add_argument('--embedding_size', default=256, type=int, help='size of embeddings')  # todo
     parser.add_argument('--num_classes', default=5, type=int, help='size of embeddings')  # todo
-    parser.add_argument('--hidden_dim', default=128, type=int, help='size of batches')
+    parser.add_argument('--hidden_dim', default=64, type=int, help='size of batches')
     parser.add_argument('--z_dim', default=32, type=int, help='size of batches')
     parser.add_argument('--max_training_minutes', default=24 * 60, type=int,
                         help='max mins of training be4 save-and-kill')
@@ -111,7 +120,13 @@ def parse() -> argparse.Namespace:
     # bool
     parser.add_argument('--test-mode', action='store_true', help='start in train_mode')
     parser.add_argument('--train-classifier', action='store_true', help='train a classifier')
+    parser.add_argument('--combined_classification', action='store_true', help='combined classification')
+    parser.add_argument("--device", type=str, help="Device to be used. Pick from none/cpu/cuda. If default none is used automatic check will be done")
+    parser.add_argument("--seed", type=int, default=42, metavar="S", help="random seed (default: 42)")
 
+    # combined test stuff
+    parser.add_argument('--classifier_dir', default="", type=str, help='classifier state-dict dir')
+    parser.add_argument('--vaes_dir', default="", type=str, help='vaes state-dict dir. Give names separated by commas')
     # todo: add whatever you like
 
     return parser.parse_args()
@@ -120,7 +135,7 @@ def parse() -> argparse.Namespace:
 if __name__ == '__main__':
     print("PyTorch version:", torch.__version__, "Python version:", sys.version)
     print("Working directory: ", os.getcwd())
-    print("CUDA avalability:", torch.cuda.is_available(), "CUDA version:", torch.version.cuda)
+    # print("CUDA avalability:", torch.cuda.is_available(), "CUDA version:", torch.version.cuda)
     ensure_current_directory()
     args = parse()
     main(args)

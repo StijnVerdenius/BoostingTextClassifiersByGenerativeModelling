@@ -12,7 +12,6 @@ from torch.utils.data import DataLoader
 from models.GeneralModel import GeneralModel
 from models.datasets.CheckDataLoader import CheckDataLoader
 from models.losses.ELBO import ELBO
-from utils.constants import SEED, DEVICE
 from utils.data_manager import DataManager
 from utils.system_utils import ensure_current_directory
 
@@ -262,15 +261,16 @@ def _test_reconstruction_vae():
 
 
 if __name__ == '__main__':
+    seed = 42
+
     ensure_current_directory()
-    if DEVICE == 'cuda':
-        torch.backends.cudnn.benchmark = False
-        torch.cuda.manual_seed_all(SEED)
+    torch.backends.cudnn.benchmark = False
+    torch.cuda.manual_seed_all(seed)
 
     # for reproducibility
-    torch.manual_seed(SEED)
-    np.random.seed(SEED)
-    random.seed(SEED)
+    torch.manual_seed(seed)
+    np.random.seed(seed)
+    random.seed(seed)
 
     _test_sample_vae()
     # _test_vae_forward()

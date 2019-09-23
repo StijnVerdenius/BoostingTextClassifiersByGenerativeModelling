@@ -44,3 +44,19 @@ class ELBO(GeneralModel):
         self.losses["recon"] = 0
         self.losses["reg"] = 0
         self.evaluations = 0
+
+    def test(self, _, mean, std, reconstructed_mean, x):  # todo: revisit
+        """
+        calculates negated-ELBO loss
+        """
+
+        self.evaluations += 1
+
+        x = x.float()
+        loss_reg = (-0.5 * torch.sum(std - torch.pow(mean, 2) - torch.exp(std) + 1, 1))
+        loss_recon = nn.MSELoss(reduction='none')(reconstructed_mean, x)
+
+        loss_recon = loss_recon.mean(-1)
+        loss_reg = loss_reg.mean(-1)
+
+        return loss_reg.detach(), loss_recon.detach()  # / batch_size
