@@ -24,8 +24,8 @@ class Trainer:
                  optimizer: Optimizer,
                  loss_function: GeneralModel,
                  args: argparse.Namespace,
-                 device="cpu"
-                 ):
+                 patience: int,
+                 device="cpu"):
 
         self.arguments = args
         self.loss_function = loss_function
@@ -39,6 +39,7 @@ class Trainer:
                 ','))
         self._start_time = time.time()
         self._device = device
+        self._patience = patience
 
         # validate input to class
         self._validate_self()
@@ -80,10 +81,11 @@ class Trainer:
             print(self._log_header)
 
             best_accuracy = 0
+            patience = self._patience
             # run
             for epoch in range(self.arguments.epochs):
                 # do epoch
-                epoch_progress, best_accuracy = self._epoch_iteration(epoch, best_accuracy)
+                epoch_progress, best_accuracy, patience = self._epoch_iteration(epoch, best_accuracy, patience)
 
                 # add progress-list to global progress-list
                 progress += epoch_progress
@@ -96,6 +98,9 @@ class Trainer:
 
                 # flush prints
                 sys.stdout.flush()
+
+                if patience == 0:
+                    break
 
         except KeyboardInterrupt as e:
             print(f"Killed by user: {e}")
@@ -116,7 +121,8 @@ class Trainer:
     def _epoch_iteration(
             self,
             epoch_num: int,
-            best_accuracy: float) -> Tuple[List, float]:
+        best_accuracy: float,
+        patience: int) -> Tuple[List, float, int]:
         """
         one epoch implementation
         """
@@ -155,6 +161,8 @@ class Trainer:
                     save_models([self.model], 'model_best')
                     best_accuracy = acc_validation
                     new_best = True
+                else:
+                    patience -= 1
 
                 self._log(
                     loss_validation,
@@ -174,7 +182,10 @@ class Trainer:
                 raise KeyboardInterrupt(f"Process killed because {self.arguments.max_training_minutes} minutes passed "
                                         f"since {DATA_MANAGER.actual_date}. Time now is {datetime.now()}")
 
-        return progress, best_accuracy
+            if patience == 0:
+                break
+
+        return progress, best_accuracy, patience
 
     def _batch_iteration(self,
                          batch: torch.Tensor,
