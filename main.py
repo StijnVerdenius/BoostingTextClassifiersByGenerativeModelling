@@ -28,13 +28,13 @@ def main(arguments: argparse.Namespace):
         device = "cuda" if torch.cuda.is_available() else "cpu"
 
     # for reproducibility
-    torch.manual_seed(SEED)
-    np.random.seed(SEED)
-    random.seed(SEED)
+    torch.manual_seed(args.seed)
+    np.random.seed(args.seed)
+    random.seed(args.seed)
 
     if device == 'cuda':
         torch.backends.cudnn.benchmark = False
-        torch.cuda.manual_seed_all(SEED)
+        torch.cuda.manual_seed_all(args.seed)
 
     # get model from models-folder (name of class has to be identical to filename)
     model = find_right_model((CLASS_DIR if arguments.train_classifier else
@@ -123,11 +123,11 @@ def parse() -> argparse.Namespace:
     parser.add_argument('--train-classifier', action='store_true', help='train a classifier')
     parser.add_argument('--combined_classification', action='store_true', help='combined classification')
     parser.add_argument("--device", type=str, help="Device to be used. Pick from none/cpu/cuda. If default none is used automatic check will be done")
+    parser.add_argument("--seed", type=int, default=42, metavar="S", help="random seed (default: 42)")
 
     # combined test stuff
     parser.add_argument('--classifier_dir', default="", type=str, help='classifier state-dict dir')
     parser.add_argument('--vaes_dir', default="", type=str, help='vaes state-dict dir. Give names separated by commas')
-
     # todo: add whatever you like
 
     return parser.parse_args()

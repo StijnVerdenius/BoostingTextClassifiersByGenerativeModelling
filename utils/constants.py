@@ -3,8 +3,6 @@ import torch
 from utils.data_manager import DataManager
 import os
 
-SEED = 0
-
 CODEBASE_DIR = "codebase"
 SUMMARY_DIR = "summary"
 OUTPUT_DIR = "output"
