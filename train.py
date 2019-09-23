@@ -117,10 +117,15 @@ class Trainer:
 
         progress = []
 
+        train_accuracy = 0
+        train_loss = 0
+
         for i, (batch, targets, lengths) in enumerate(self.data_loader_train):
 
             # do forward pass and whatnot on batch
             loss_batch, accuracy_batch = self._batch_iteration(batch, targets, lengths)
+            train_loss += loss_batch
+            train_accuracy += accuracy_batch
 
             # add to list somehow: todo: make statistic class?
             progress.append({"loss": loss_batch, "acc": accuracy_batch})
@@ -132,7 +137,7 @@ class Trainer:
             # run on validation set and print progress to terminal
             if (batches_passed % self.arguments.eval_freq) == 0:  # todo
                 loss_validation, acc_validation = self._evaluate()
-                self._log(loss_validation, acc_validation, loss_batch, accuracy_batch, batches_passed, float(time_passed.microseconds))
+                self._log(loss_validation, acc_validation, (train_loss / (i+1)), (train_accuracy / (i+1)), batches_passed, float(time_passed.microseconds))
 
 
             # check if runtime is expired
