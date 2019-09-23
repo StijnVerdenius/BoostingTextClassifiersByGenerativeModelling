@@ -15,7 +15,7 @@ class LyricsDataset(Dataset):
         data_manager = DataManager(folder)
         
         # load the song entries pickle
-        self._song_entries = data_manager.load_python_obj(f'song_lyrics.{set_name}')
+        self._song_entries = self.setup(data_manager, set_name)
         self.set_name = set_name
         # assert that the embedding folder exists inside the passed folder
         embeddings_folder_path = os.path.join(folder, 'embeddings')
@@ -26,6 +26,9 @@ class LyricsDataset(Dataset):
         assert os.path.exists(self._embeddings_file_path)
 
         print('-- Loaded dataset:', self.set_name, '- size:', self.__len__())
+
+    def setup(self, data_manager: DataManager, set_name: str):
+        return data_manager.load_python_obj(f'song_lyrics.{set_name}')
 
     def __len__(self):
         return len(self._song_entries)

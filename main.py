@@ -9,6 +9,8 @@ import argparse
 import sys
 from torch.utils.data import DataLoader
 
+from models.enums.Genre import Genre
+
 from test import Tester
 from train import Trainer
 from utils.constants import *
@@ -23,15 +25,12 @@ def main(arguments: argparse.Namespace):
     """ where the magic happens """
     if DEVICE == 'cuda':
         torch.backends.cudnn.benchmark = False
+        torch.cuda.manual_seed_all(SEED)
 
     # for reproducibility
-    SEED = 0
     torch.manual_seed(SEED)
     np.random.seed(SEED)
     random.seed(SEED)
-
-    if DEVICE == 'cuda':
-        torch.cuda.manual_seed_all(SEED)
 
     # get model from models-folder (name of class has to be identical to filename)
     model = find_right_model((CLASS_DIR if arguments.train_classifier else
@@ -49,8 +48,7 @@ def main(arguments: argparse.Namespace):
                              input_dim=arguments.embedding_size)
     model.to(DEVICE)
 
-    # print((arguments.classifier if arguments.train_classifier else   (arguments.generator if not arguments.combined_classification  else arguments.classifier))       )
-    # print(arguments.combin)
+
     # if we are in train mode..
     if arguments.test_mode:
         # we are in test mode
@@ -67,7 +65,7 @@ def main(arguments: argparse.Namespace):
 
         # get optimizer and loss function
         optimizer = find_right_model(OPTIMS, arguments.optimizer, params=model.parameters(), lr=arguments.learning_rate)
-        loss_function = find_right_model(LOSS_DIR, arguments.loss, some_param="example").to(DEVICE)
+        loss_function = find_right_model(LOSS_DIR, arguments.loss).to(DEVICE)
 
         # train
         trainer = Trainer(data_loader_train, data_loader_validation, model, optimizer, loss_function, arguments)
@@ -78,10 +76,12 @@ def load_data_set(arguments: argparse.Namespace,
                   set_name: str) -> DataLoader:
     """ loads specific dataset as a DataLoader """
 
-    dataset = find_right_model(DATASETS, arguments.dataset_class, folder=arguments.data_folder, set_name=set_name)
-    loader = DataLoader(dataset, shuffle=False, batch_size=arguments.batch_size, collate_fn=pad_and_sort_batch) # (set_name is TRAIN_SET)
+    dataset = find_right_model(DATASETS, arguments.dataset_class, folder=arguments.data_folder, set_name=set_name, genre=Genre.from_str(arguments.genre))
+    loader = DataLoader(dataset, shuffle=(set_name is TRAIN_SET), batch_size=arguments.batch_size, collate_fn=pad_and_sort_batch)
+
     # todo: revisit and validation checks
     return loader
+
 
 def parse() -> argparse.Namespace:
     """ does argument parsing """
@@ -111,6 +111,9 @@ def parse() -> argparse.Namespace:
     parser.add_argument('--data_folder', default=os.path.join('local_data', 'data'), type=str, help='data folder path')
     parser.add_argument('--dataset_class', default="LyricsDataset", type=str, help='dataset name')
     parser.add_argument('--run_name', default="", type=str, help='extra identification for run')
+    parser.add_argument('--genre', type=str, default=None,
+                        help='vae-genre')
+    # parser.add_argument('--genre', default=None, type=Genre, help='vae-genre')
 
     # bool
     parser.add_argument('--test-mode', action='store_true', help='start in train_mode')

@@ -38,16 +38,16 @@ class Tester:
             results = []
             for i, (batch, targets, lengths) in enumerate(self.data_loader_test):
 
-                loss_batch, accuracy_batch = self._batch_iteration(batch, targets, lengths)
+                accuracy_batch = self._batch_iteration(batch, targets, lengths)
 
-                results.append({"loss": loss_batch, "acc": accuracy_batch})
-
+                results.append(accuracy_batch)
+                break
             # average over all accuracy batches
-            batches_tested = len(results["loss"])
-            average_accuracy = torch.mean(results["loss"])/batches_tested
-            average_scores = torch.mean(results["acc"])/batches_tested
+            # batches_tested = len(results)
+            # average_accuracy = torch.mean(results)
+            # average_scores = torch.mean(results["acc"])/batches_tested
 
-            return average_accuracy, average_scores
+            # return average_accuracy, average_scores
 
         except KeyboardInterrupt as e:
             print(f"Killed by user: {e}")
@@ -72,10 +72,13 @@ class Tester:
         lengths = lengths.to(DEVICE).detach()
         print(batch.shape, lengths.shape)
 
-        print(type(self.model).__name__)
         output = self.model.forward(batch, lengths)
 
-        _, classifications = output.detach().max(dim=-1)
+        if 'Combined' in type(self.model).__name__:
+            combined_score, scores = output
+            score_classifier, _, _ = scores
+
+        _, classifications = score_classifier.detach().max(dim=-1)
         accuracy = (targets.eq(classifications)).float().mean().item()
 
         return accuracy

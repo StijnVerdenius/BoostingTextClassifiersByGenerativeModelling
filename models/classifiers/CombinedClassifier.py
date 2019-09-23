@@ -24,7 +24,8 @@ class CombinedClassifier(GeneralModel):
                                                 classifier_class,
                                                 n_channels_in=n_channels_in,
                                                 num_classes=num_classes,
-                                                device=device
+                                                device=device,
+                                                hidden_dim=hidden_dim
                                                 ).to(device)
 
         self.vae_classifier = find_right_model(CLASS_DIR,
@@ -38,21 +39,29 @@ class CombinedClassifier(GeneralModel):
                                                ).to(device)
 
         lstm_file = os.path.join(GITIGNORED_DIR, RESULTS_DIR, lstm_file)
-        self.base_classifier.load_state_dict(torch.load(lstm_file))
+        datamanager = DataManager(lstm_file)
+        loaded = datamanager.load_python_obj(os.path.join('models', 'Models_at_epoch_1'))
+        for state_dict in loaded.values():
+            state_dict = state_dict
+        self.base_classifier.load_state_dict(state_dict)
 
     def forward(self, inp, lengths):
         out_base = self.base_classifier.forward(inp.detach(), lengths.detach())  # need to put through softmax
-        out_base_class_scores = out_base.log_softmax(dim=-1)
+        out_base_class_scores = torch.nn.functional.softmax(out_base[0], dim=-1).detach()
 
-        out_vaes_loss_per_class = self.vae_classifier.forward(inp)
+        out_vaes_regul, out_vaes_reconst = self.vae_classifier.forward(inp)
 
         # expected: both tensors to be values per class so: B x C
-        print(out_base_class_scores.shape, out_vaes_loss_per_class.shape)
-        # combine scores somehow?
-        # lowest loss is the best don't forget. todo, take inv or neg?
+        out_vaes_regul = torch.stack(out_vaes_regul).permute([-1, 0])
+        out_vaes_reconst = torch.stack(out_vaes_reconst).permute([-1, 0])
 
+        # todo combine scores somehow?
+        # lowest loss is the best don't forget. todo, take inv or neg?
+        print('lstm', out_base_class_scores)
+        print('vreg', out_vaes_regul)
+        print('vrec', out_vaes_reconst)
         combined_score = out_base_class_scores  # todo: what to do? check how scores are
-        return combined_score, out_base_class_scores, out_vaes_loss_per_class
+        return combined_score, (out_base_class_scores, out_vaes_regul, out_vaes_reconst)
 
         # todo keep in mind that scores should be as if they're probabilities, meaning for
         # classification we take argmax and classify directly

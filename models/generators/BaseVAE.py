@@ -3,8 +3,16 @@ import torch.nn as nn
 import torch.nn.functional as F
 from torch.nn import Parameter
 
+import numpy as np
+
+import random
+
 from models.GeneralModel import GeneralModel
+from models.datasets.CheckDataLoader import CheckDataLoader
 from models.losses.ELBO import ELBO
+from utils.constants import SEED, DEVICE
+from utils.data_manager import DataManager
+from utils.system_utils import ensure_current_directory
 
 
 class Encoder(nn.Module):
@@ -39,15 +47,20 @@ class Encoder(nn.Module):
 
 class Decoder(nn.Module):
 
+    def effective_k(self, k, d):
+        return (k - 1) * d + 1
+
     def __init__(self, n_in, hidden_dim, z_dim, device="cpu"):
         super(Decoder, self).__init__()
         self.hidden_dim = hidden_dim
         self.z_dim = z_dim
 
-        self.decoder_kernels = []
-        self.decoder_paddings = []
-        self.decoder_dilations = []
-
+        self.decoder_dilations = [1, 2, 4]
+        self.decoder_kernels = [(400, self.z_dim, 3),
+                                (450, 400, 3),
+                                (n_in, 450, 3)]
+        self.decoder_paddings = [self.effective_k(w, self.decoder_dilations[i]) - 1
+                                 for i, (_, _, w) in enumerate(self.decoder_kernels)]
 
         self.kernels = [Parameter(torch.Tensor(out_chan, in_chan, width).normal_(0, 0.05))
                         for out_chan, in_chan, width in self.decoder_kernels]
@@ -81,8 +94,8 @@ class Decoder(nn.Module):
             x = x[:, :, :(x_width - self.decoder_paddings[layer])].contiguous()
 
             x = F.relu(x)
-        mean = x
-        return mean.permute(0, 2, 1)
+        mean = x.permute(0, 2, 1)
+        return mean
 
 
 class BaseVAE(GeneralModel):
@@ -96,7 +109,7 @@ class BaseVAE(GeneralModel):
         self.encoder = Encoder(n_channels_in, hidden_dim, z_dim, device=device)
         self.decoder = Decoder(n_channels_in, hidden_dim, z_dim, device=device)
 
-    def forward(self, x: torch.Tensor):  # todo: revisit
+    def forward(self, x: torch.Tensor, _):  # todo: revisit
         # ensure device
         x = x.to(self.device)
 
@@ -120,15 +133,77 @@ class BaseVAE(GeneralModel):
 
         return mean, std, reconstruction_mean.contiguous().view((batch_size, -1)), x.contiguous().view((batch_size, -1))
 
+    def sample(self):
 
-if __name__ == '__main__':
-    testbatch = torch.randn((128, 20, 100))
+        z = torch.randn((self.z_dim, 20, self.hidden_dim))
 
-    vae = BaseVAE(n_channels_in=100)
+        x = self.decoder.forward(z)
+
+        x: torch.Tensor
+
+        y = x.argmax(dim=2)
+
+        return y
+
+
+
+
+
+def _test_sample_vae():
+    vae = BaseVAE(n_channels_in=106, hidden_dim=128, z_dim=128)
     vae: BaseVAE
-    x = vae.forward(testbatch)
+
+    datamanager = DataManager("./local_data/results/spamham")
+
+    loaded = datamanager.load_python_obj("models/KILLED_at_epoch_2")
+
+    state_dict = 0
+    for state_dict in loaded.values():
+        state_dict = state_dict
+
+    vae.load_state_dict(state_dict)
+
+    y = vae.sample()
+
+    data = CheckDataLoader()
+
+    vocab = data.vocabulary
+
+    vocab_rev = {value: key for key, value in vocab.items()}
+
+    for sen in y:
+        string = ""
+        for num in sen:
+            string += (vocab_rev[num.item()])
+
+        print(string)
+
+
+def _test_vae_forward():
+    testbatch = torch.randn((128, 20, 100))  # batch, seq_len, embedding
+
+    vae = BaseVAE(n_channels_in=100, hidden_dim=128, z_dim=128)
+    vae: BaseVAE
+
+    x = tuple([None]) + vae.forward(testbatch, None)
     lossfunc = ELBO()
     score = lossfunc.forward(*x)
     print(score.shape, score)
 
-    # F.conv1d()
+
+
+
+if __name__ == '__main__':
+    ensure_current_directory()
+    if DEVICE == 'cuda':
+        torch.backends.cudnn.benchmark = False
+        torch.cuda.manual_seed_all(SEED)
+
+    # for reproducibility
+    torch.manual_seed(SEED)
+    np.random.seed(SEED)
+    random.seed(SEED)
+
+    _test_sample_vae()
+    _test_vae_forward()
+

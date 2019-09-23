@@ -5,9 +5,11 @@ sys.path.append('..')
 
 from models.enums.Genre import Genre
 
-def remove_ending_substring(string, substring):
+def remove_end_and_start_substring(string, substring):
     while string.endswith(substring):
-        return string[:-len(substring)]
+        string = string[:-len(substring)]
+    while string.startswith(substring):
+        string = string[:-len(substring)]
 
     return string
 
@@ -18,7 +20,7 @@ class Song():
         self._genre = genre
         
         parsed_lyrics = re.sub('\n+', '\n', lyrics)
-        parsed_lyrics = remove_ending_substring(parsed_lyrics, '\n')
+        parsed_lyrics = remove_end_and_start_substring(parsed_lyrics, '\n')
         parsed_lyrics = parsed_lyrics.replace('\n \n', '\n')
 
         self._lyrics = parsed_lyrics

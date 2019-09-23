@@ -1,0 +1,1 @@
+python3 main.py --classifier LSTMClassifier --dataset_class LyricsDataset --loss CrossEntropyLoss --num_classes 5 --embedding_size 256 --train-classifier

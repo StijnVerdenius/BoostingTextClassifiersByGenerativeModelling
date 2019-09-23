@@ -21,7 +21,6 @@ class VAEClassifier(GeneralModel):
         self.loss_func = find_right_model(LOSS_DIR, loss).to(device)
         self.models = []
         for vae_file in vae_files:
-            print(vae_file)
             vae_file = os.path.join(GITIGNORED_DIR, RESULTS_DIR, vae_file)
             self.models.append(find_right_model(GEN_DIR,
                                                 generator_class,
@@ -31,18 +30,19 @@ class VAEClassifier(GeneralModel):
                                                 input_dim=input_dim,
                                                 device=device
                                                 ).to(device))
-            print(vae_file)
             datamanager = DataManager(vae_file)
             loaded = datamanager.load_python_obj(os.path.join('models', 'KILLED_at_epoch_73'))
-            state_dict = 0
             for state_dict in loaded.values():
                 state_dict = state_dict
             self.models[-1].load_state_dict(state_dict)
+            self.device = device
 
     def forward(self, inp):
-        losses = []  # todo make sure one forward doesn't affect the other? or the loss?
+        regs, recons, = [], []  # todo make sure one forward doesn't affect the other? or the loss?
         for model in self.models:
-            output = model.forward(inp.detach())
-            losses.append(self.loss_func.forward(_, *output))
-        return losses
+            output = model.forward(inp.detach(), None)
+            reg, recon = self.loss_func.test(None, *output)
+            regs.append(reg)
+            recons.append(recon)
+        return regs, recons
 

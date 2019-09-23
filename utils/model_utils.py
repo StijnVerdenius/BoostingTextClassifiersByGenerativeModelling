@@ -57,11 +57,11 @@ def save_models(models: List[nn.Module],
 
     save_dict = {str(model.__class__): model.state_dict() for model in models}
 
-    DATA_MANAGER.save_python_obj(save_dict, os.path.join(RESULTS_DIR, DATA_MANAGER.stamp, MODELS_DIR, suffix))
+    DATA_MANAGER.save_python_obj(save_dict, os.path.join(RESULTS_DIR, DATA_MANAGER.stamp, MODELS_DIR, suffix), print_success=False)
 
 
 def calculate_accuracy(targets, output, *ignored):
-    output = output.log_softmax(dim=-1)
+    output = torch.nn.functional.softmax(output[0], dim=-1).detach()
     _, classifications = output.detach().max(dim=-1)
     return (targets.eq(classifications)).float().mean()
 
