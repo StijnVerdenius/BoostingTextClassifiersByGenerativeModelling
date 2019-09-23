@@ -119,8 +119,8 @@ class Trainer:
         return True
 
     def _epoch_iteration(
-            self,
-            epoch_num: int,
+        self,
+        epoch_num: int,
         best_accuracy: float,
         patience: int) -> Tuple[List, float, int]:
         """
