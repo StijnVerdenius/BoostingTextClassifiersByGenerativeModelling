@@ -10,7 +10,7 @@ class LSTMClassifier(GeneralModel):
 
     def __init__(self,
                  num_classes=10,
-                 lstm_num_layers=2,
+                 lstm_num_layers=1,
                  hidden_dim=256,
                  dropout=0.0,
                  batch_first=True,
