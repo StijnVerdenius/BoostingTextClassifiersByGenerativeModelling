@@ -1,0 +1,1 @@
+python3 main.py --generator BaseVAE --dataset_class LyricsDatasetVAE --loss ELBO --embedding_size 256 --genre Rock
