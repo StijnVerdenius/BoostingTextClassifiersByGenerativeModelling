@@ -241,8 +241,20 @@ class Trainer:
         if self.arguments.train_classifier:
             self.writer.add_scalar("Accuracy_validation", acc_validation, batches_done, time_passed)
             self.writer.add_scalar("Accuracy_train", acc_train, batches_done, time_passed)
-            print(
-                f"Batch: ({batches_done}|{batches_done % len_dataset})/{len_dataset}, Accuracy_validation: {acc_validation}, Loss_validation: {loss_validation}, Accuracy_train: {acc_train}, Loss_train: {loss_train}")
+            
+            print(self._log_template.format(
+                time.time()-self._start_time,
+                epoch,
+                iteration,
+                1 + iteration,
+                iterations,
+                100. * (1+iteration) / iterations,
+                loss_train,
+                acc_train,
+                loss_validation,
+                acc_validation,
+                "BEST" if new_best else ""))
+
         else:
             for key, value in self.loss_function.get_losses().items():
                 self.writer.add_scalar(key, value, batches_done, time_passed)
@@ -251,15 +263,3 @@ class Trainer:
         self.writer.add_scalar("Loss_validation", loss_validation, batches_done, time_passed)
         self.writer.add_scalar("Loss_train", loss_train, batches_done, time_passed)
         
-        print(self._log_template.format(
-            time.time()-self._start_time,
-            epoch,
-            iteration,
-            1 + iteration,
-            iterations,
-            100. * (1+iteration) / iterations,
-            loss_train,
-            acc_train,
-            loss_validation,
-            acc_validation,
-            "BEST" if new_best else ""))
