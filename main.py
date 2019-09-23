@@ -71,7 +71,15 @@ def main(arguments: argparse.Namespace):
         loss_function = find_right_model(LOSS_DIR, arguments.loss).to(device)
 
         # train
-        trainer = Trainer(data_loader_train, data_loader_validation, model, optimizer, loss_function, arguments, device)
+        trainer = Trainer(
+            data_loader_train,
+            data_loader_validation,
+            model,
+            optimizer,
+            loss_function,
+            arguments,
+            args.patience,
+            device)
         trainer.train()
 
 
@@ -123,6 +131,7 @@ def parse() -> argparse.Namespace:
     parser.add_argument('--combined_classification', action='store_true', help='combined classification')
     parser.add_argument("--device", type=str, help="Device to be used. Pick from none/cpu/cuda. If default none is used automatic check will be done")
     parser.add_argument("--seed", type=int, default=42, metavar="S", help="random seed (default: 42)")
+    parser.add_argument("--patience", type=int, default=30, help="how long will the model wait for improvement before stopping training")
 
     # combined test stuff
     parser.add_argument('--classifier_dir', default="", type=str, help='classifier state-dict dir')
