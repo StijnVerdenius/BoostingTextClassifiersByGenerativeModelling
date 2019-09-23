@@ -146,8 +146,6 @@ class Trainer:
                 loss_validation, acc_validation = self._evaluate()
                 
                 new_best = False
-                self._log(loss_validation, acc_validation, (train_loss / (i + 1)), (train_accuracy / (i + 1)),
-                          batches_passed, float(time_passed.microseconds), len(self.data_loader_train))
                 if best_accuracy < acc_validation:
                     save_models([self.model], 'model_best')
                     best_accuracy = acc_validation
