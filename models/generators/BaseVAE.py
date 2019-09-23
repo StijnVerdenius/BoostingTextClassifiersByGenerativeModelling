@@ -14,7 +14,7 @@ from models.datasets.CheckDataLoader import CheckDataLoader
 from models.losses.ELBO import ELBO
 from utils.data_manager import DataManager
 from utils.system_utils import ensure_current_directory
-
+from torch.autograd import Variable
 ######## inspired by; https://github.com/kefirski/contiguous-succotash
 
 
@@ -35,7 +35,7 @@ class Encoder(nn.Module):
         ).to(device)
 
         self.layer_mu = nn.Linear(hidden_dim, z_dim).to(device)
-        self.layer_sig = nn.Linear(hidden_dim, z_dim).to(device)
+        self.layer_logvar = nn.Linear(hidden_dim, z_dim).to(device)
 
     def forward(self, x):
         x = x.float()
@@ -43,8 +43,8 @@ class Encoder(nn.Module):
         shared = self.layers.forward(lstm_output)
 
         mean = self.layer_mu(shared)
-        std = self.activation(self.layer_sig(shared))
-
+        logvar = self.layer_logvar(shared)  # deleted activation
+        std = torch.sqrt(torch.exp(logvar))
         return mean, std
 
 
@@ -129,7 +129,7 @@ class BaseVAE(GeneralModel):
         epsilon: torch.Tensor
 
         # reperimatrization-sample z
-        z = epsilon.__mul__(std).__add__(mean)
+        z = Variable(epsilon.__mul__(std).__add__(mean))
 
         # recosntruct x from z
         self.decoder: Decoder
