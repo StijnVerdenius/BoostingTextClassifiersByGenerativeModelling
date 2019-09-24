@@ -87,8 +87,10 @@ def load_data_set(arguments: argparse.Namespace,
                   set_name: str) -> DataLoader:
     """ loads specific dataset as a DataLoader """
 
-    dataset = find_right_model(DATASETS, arguments.dataset_class, folder=arguments.data_folder, set_name=set_name, genre=Genre.from_str(arguments.genre))
-    loader = DataLoader(dataset, shuffle=(set_name is TRAIN_SET), batch_size=arguments.batch_size, collate_fn=pad_and_sort_batch)
+    dataset = find_right_model(DATASETS, arguments.dataset_class, folder=arguments.data_folder, set_name=set_name,
+                               genre=Genre.from_str(arguments.genre))
+    loader = DataLoader(dataset, shuffle=(set_name is TRAIN_SET), batch_size=arguments.batch_size,
+                        collate_fn=pad_and_sort_batch)
     # todo: revisit and validation checks
     return loader
 
@@ -100,7 +102,7 @@ def parse() -> argparse.Namespace:
 
     # int
     parser.add_argument('--epochs', default=500, type=int, help='max number of epochs')
-    parser.add_argument('--eval_freq', default=20, type=int, help='evaluate every x batches')
+    parser.add_argument('--eval_freq', default=10, type=int, help='evaluate every x batches')
     parser.add_argument('--saving_freq', default=1, type=int, help='save every x epochs')
     parser.add_argument('--batch_size', default=64, type=int, help='size of batches')
     parser.add_argument('--embedding_size', default=256, type=int, help='size of embeddings')  # todo
@@ -129,9 +131,11 @@ def parse() -> argparse.Namespace:
     parser.add_argument('--test-mode', action='store_true', help='start in train_mode')
     parser.add_argument('--train-classifier', action='store_true', help='train a classifier')
     parser.add_argument('--combined_classification', action='store_true', help='combined classification')
-    parser.add_argument("--device", type=str, help="Device to be used. Pick from none/cpu/cuda. If default none is used automatic check will be done")
+    parser.add_argument("--device", type=str,
+                        help="Device to be used. Pick from none/cpu/cuda. If default none is used automatic check will be done")
     parser.add_argument("--seed", type=int, default=42, metavar="S", help="random seed (default: 42)")
-    parser.add_argument("--patience", type=int, default=30, help="how long will the model wait for improvement before stopping training")
+    parser.add_argument("--patience", type=int, default=30,
+                        help="how long will the model wait for improvement before stopping training")
 
     # combined test stuff
     parser.add_argument('--classifier_dir', default="", type=str, help='classifier state-dict dir')
