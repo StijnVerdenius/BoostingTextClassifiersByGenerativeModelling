@@ -13,6 +13,7 @@ class CombinedClassifier(GeneralModel):
                  num_classes,
                  lstm_file,
                  vae_files,
+                 classifier_name, vaes_names,
                  # below: probably things we wont change
                  classifier_class='LSTMClassifier',
                  generator_class='BaseVAE',
@@ -33,6 +34,7 @@ class CombinedClassifier(GeneralModel):
                                                generator_class=generator_class,
                                                generator_loss=generator_loss,
                                                vae_files=vae_files,
+                                               vaes_names=vaes_names,
                                                device=device,
                                                input_dim=input_dim,
                                                hidden_dim=hidden_dim, z_dim=z_dim,
@@ -40,7 +42,7 @@ class CombinedClassifier(GeneralModel):
 
         lstm_file = os.path.join(GITIGNORED_DIR, RESULTS_DIR, lstm_file)
         datamanager = DataManager(lstm_file)
-        loaded = datamanager.load_python_obj(os.path.join('models', 'Models_at_epoch_1'))
+        loaded = datamanager.load_python_obj(os.path.join('models', classifier_name))
         for state_dict in loaded.values():
             state_dict = state_dict
         self.base_classifier.load_state_dict(state_dict)

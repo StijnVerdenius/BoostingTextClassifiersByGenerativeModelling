@@ -49,7 +49,9 @@ def main(arguments: argparse.Namespace):
                              device=device,
                              lstm_file=arguments.classifier_dir,
                              vae_files=arguments.vaes_dir,
-                             input_dim=arguments.embedding_size)
+                             input_dim=arguments.embedding_size,
+                             classifier_name=arguments.classifier_name,
+                             vaes_names=arguments.vaes_names)
     model.to(device)
 
     # if we are in train mode..
@@ -135,7 +137,10 @@ def parse() -> argparse.Namespace:
 
     # combined test stuff
     parser.add_argument('--classifier_dir', default="", type=str, help='classifier state-dict dir')
+    parser.add_argument('--classifier_name', default="", type=str, help='classifier state-dict name under models')
     parser.add_argument('--vaes_dir', default="", type=str, help='vaes state-dict dir. Give names separated by commas')
+    parser.add_argument('--vaes_names', default="", type=str, help='vaes model names under models(sep by comma)')
+
     # todo: add whatever you like
 
     return parser.parse_args()

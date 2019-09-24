@@ -16,7 +16,6 @@ from utils.system_utils import ensure_current_directory
 from torch.autograd import Variable
 ######## inspired by; https://github.com/kefirski/contiguous-succotash
 
-
 class Encoder(nn.Module):
 
     def __init__(self, input_dim, hidden_dim, z_dim, device="cpu"):
