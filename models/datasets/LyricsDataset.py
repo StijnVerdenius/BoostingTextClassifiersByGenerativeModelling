@@ -1,26 +1,27 @@
 import os
+
 import h5py
+import numpy as np
+import torch
+from torch.utils.data import Dataset
 
 from utils.data_manager import DataManager
 
-from torch.utils.data import Dataset
-import torch
-import numpy as np
 
 class LyricsDataset(Dataset):
 
     def __init__(self, folder, set_name, **kwargs):
         super(LyricsDataset, self).__init__()
-        
+
         data_manager = DataManager(folder)
-        
+
         # load the song entries pickle
         self._song_entries = self.setup(data_manager, set_name)
         self.set_name = set_name
         # assert that the embedding folder exists inside the passed folder
         embeddings_folder_path = os.path.join(folder, 'embeddings')
         assert os.path.exists(embeddings_folder_path)
-        
+
         # assert that the embedding file for this set exists inside the embedding folder
         self._embeddings_file_path = os.path.join(embeddings_folder_path, f'embeddings.{set_name}.hdf5')
         assert os.path.exists(self._embeddings_file_path)
@@ -55,7 +56,6 @@ class LyricsDataset(Dataset):
                 print('Encountered: Unable to open object (object blabla doesnt exist)', index, self.set_name)
                 corrupt = True
                 break
-
         embeddings_file.close()
         if corrupt:
             return self.__getitem__(np.random.randint(0, self.__len__()))

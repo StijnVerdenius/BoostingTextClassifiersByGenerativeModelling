@@ -12,26 +12,22 @@ class ELBO(GeneralModel):
         self.losses = {"recon": 0, "reg": 0}
         self.evaluations = 0
 
-    def forward(self, _, mean, std, reconstructed_mean, x):  # todo: revisit
+    def forward(self, _, mean, std, reconstructed_mean, x):
         """
         calculates negated-ELBO loss
         """
 
         self.evaluations += 1
-        # todo: revisit
         x = x.float()
 
         # regularisation loss
         loss_reg = (- 0.5 * torch.sum(1 + torch.log(std ** 2) - mean ** 2 - std ** 2, dim=-1)).mean()
 
-        # loss_reg = (-0.5 * torch.sum(std - torch.pow(mean, 2) - torch.exp(std) + 1, 1)).mean().squeeze()  #
-        # loss_reg = -0.5 * torch.sum(std - mean.pow(2) - std.exp() + 1, 1).mean()
-
-        # loss_reg = torch.sum(torch.sum(-1 * torch.log(std + 1e-7) + ((std.pow(2) + mean.pow(2)) - 1) * 0.5, dim=1),
-        #                      dim=0)
-
         # reconstruction loss
-        loss_recon = nn.MSELoss(reduction="mean")(reconstructed_mean, x)
+        loss_recon = 0
+        loss_recon += nn.MSELoss(reduction="mean")(reconstructed_mean, x) #* (98/100)
+        # loss_recon += nn.L1Loss(reduction="mean")(reconstructed_mean, x)/100
+        # loss_recon += nn.CosineSimilarity()(reconstructed_mean, x).mean()/1000
 
         self.losses["recon"] += loss_recon.item()
         self.losses["reg"] += loss_reg.item()

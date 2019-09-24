@@ -4,6 +4,7 @@ import numpy as np
 import torch
 import torch.nn as nn
 import torch.nn.functional as F
+from torch.autograd import Variable
 from torch.nn import Parameter
 from torch.utils.data import DataLoader
 
@@ -13,7 +14,7 @@ from models.losses.ELBO import ELBO
 from utils.data_manager import DataManager
 from utils.system_utils import ensure_current_directory
 
-from torch.autograd import Variable
+
 ######## inspired by; https://github.com/kefirski/contiguous-succotash
 
 class Encoder(nn.Module):
@@ -23,7 +24,7 @@ class Encoder(nn.Module):
         self.hidden_dim = hidden_dim
         self.z_dim = z_dim
 
-        self.activation = nn.ReLU().to(device)
+        # self.activation = nn.ReLU().to(device)
 
         self.lstm = nn.LSTM(input_dim, hidden_dim, batch_first=True, dropout=0.1, bias=True, num_layers=2)
 
@@ -56,9 +57,9 @@ class Decoder(nn.Module):
         self.hidden_dim = hidden_dim
         self.z_dim = z_dim
 
-        self.decoder_dilations = [1, 4]
+        self.decoder_dilations = [1, 2, 4]
         self.decoder_kernels = [(hidden_dim, self.z_dim, 3),
-                                # (hidden_dim, hidden_dim, 3),
+                                (hidden_dim, hidden_dim, 3),
                                 (n_in, hidden_dim, 3)]
         self.decoder_paddings = [self.effective_k(w, self.decoder_dilations[i]) - 1
                                  for i, (_, _, w) in enumerate(self.decoder_kernels)]
@@ -71,19 +72,14 @@ class Decoder(nn.Module):
                        for out_chan, in_chan, width in self.decoder_kernels]
         self._add_to_parameters(self.biases, 'decoder_bias')
 
-        self.layers = nn.Sequential(
-            nn.Conv1d(in_channels=z_dim, out_channels=hidden_dim, kernel_size=1, dilation=2),
-            nn.ReLU(),
-            nn.Conv1d(in_channels=hidden_dim, out_channels=n_in, kernel_size=1, dilation=2),
-            nn.Sigmoid(),
-        ).to(device)
+        self.last_fc = nn.Linear(n_in, n_in, bias=True).to(device)
 
     def _add_to_parameters(self, parameters, name):
         for i, parameter in enumerate(parameters):
             self.register_parameter(name='{}-{}'.format(name, i), param=parameter)
 
-    def forward(self, x):
-        x = x.permute(0, 2, 1)
+    def forward(self, x_in):
+        x = x_in.permute(0, 2, 1)
         for layer, kernel in enumerate(self.kernels):
             # apply conv layer with non-linearity and drop last elements of sequence to perfrom input shifting
             x = F.conv1d(x, kernel,
@@ -94,9 +90,14 @@ class Decoder(nn.Module):
             x_width = x.size()[2]
             x = x[:, :, :(x_width - self.decoder_paddings[layer])].contiguous()
 
-            x = F.relu(x)
-        mean = x.permute(0, 2, 1)
-        return mean
+            if (layer + 1 == len(self.kernels)):
+                x = x.permute(0, 2, 1)
+                x = F.relu(x)
+                x = self.last_fc.forward(x)
+                x = F.sigmoid(x)
+            else:
+                x = F.relu(x)
+        return x
 
 
 class BaseVAE(GeneralModel):
@@ -110,7 +111,10 @@ class BaseVAE(GeneralModel):
         self.encoder = Encoder(n_channels_in, hidden_dim, z_dim, device=device)
         self.decoder = Decoder(n_channels_in, hidden_dim, z_dim, device=device)
 
-    def forward(self, x: torch.Tensor, _):  # todo: revisit
+    def forward(self, x: torch.Tensor, _):
+
+        # normalize
+        x = (x + 6) / 12
 
         # ensure device
         x = x.to(self.device)
@@ -131,29 +135,32 @@ class BaseVAE(GeneralModel):
 
         # recosntruct x from z
         self.decoder: Decoder
-        reconstruction_mean = self.decoder.forward(z)
+        reconstructed_x = self.decoder.forward(z)
 
-        return mean, std, reconstruction_mean.contiguous().view((batch_size, -1)), x.contiguous().view((batch_size, -1))
+        return mean, std, reconstructed_x.contiguous().view((batch_size, -1)), x.contiguous().view((batch_size, -1))
 
     def sample(self):
-        z = torch.randn((20, self.hidden_dim, self.z_dim))
+        z = torch.randn((1, 25, self.z_dim))
 
-        x = self.decoder.forward(z)
+        x = self.decoder.forward(z).squeeze()
 
         x: torch.Tensor
 
-        y = x.argmax(dim=2)
+        distr = torch.nn.Softmax(1)(x)
+
+        # y = distr.argmax(dim=1)
+        y = torch.multinomial(distr, 20)
 
         return y
 
 
 def _test_sample_vae():
-    vae = BaseVAE(n_channels_in=106, hidden_dim=128, z_dim=32)
+    vae = BaseVAE(n_channels_in=106, hidden_dim=64, z_dim=32)
     vae: BaseVAE
 
-    datamanager = DataManager("./local_data/results/appel")
+    datamanager = DataManager("./local_data/results/kaas3")
 
-    loaded = datamanager.load_python_obj("models/appel")
+    loaded = datamanager.load_python_obj("models/kaas3")
 
     state_dict = 0
     for state_dict in loaded.values():
@@ -182,7 +189,7 @@ def _test_sample_vae():
 def _test_vae_forward():
     testbatch = torch.randn((128, 20, 100))  # batch, seq_len, embedding
 
-    vae = BaseVAE(n_channels_in=100, hidden_dim=128, z_dim=128)
+    vae = BaseVAE(n_channels_in=100, hidden_dim=256, z_dim=32)
     vae: BaseVAE
     vae.eval()
 

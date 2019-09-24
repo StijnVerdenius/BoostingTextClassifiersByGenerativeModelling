@@ -161,6 +161,7 @@ class Trainer:
                     save_models([self.model], 'model_best')
                     best_accuracy = acc_validation
                     new_best = True
+                    patience = self._patience
                 else:
                     patience -= 1
 
