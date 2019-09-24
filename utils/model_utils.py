@@ -61,7 +61,7 @@ def save_models(models: List[nn.Module],
 
 
 def calculate_accuracy(targets, output, *ignored):
-    output = torch.nn.functional.softmax(output[0], dim=-1).detach()
+    output = torch.nn.functional.softmax(output, dim=-1).detach()
     _, classifications = output.detach().max(dim=-1)
     return (targets.eq(classifications)).float().mean()
 
