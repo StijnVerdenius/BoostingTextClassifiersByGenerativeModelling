@@ -1,0 +1,28 @@
+--classifier CombinedClassifier
+--dataset_class LyricsDataset
+--loss CrossEntropyLoss
+--num_classes 5
+--embedding_size 256
+--test-mode
+--learning_rate 0.001
+--hidden_dim 64
+--batch_size 20
+--combined_classification
+--classifier_dir konstantin
+
+--vaes_dir
+VAE_1000_25-07-19\mse_loss\2019-09-25_14.29.13_MSE_ELBO_Rock_,VAE_1000_25-07-19\mse_loss\2019-09-25_14.39.17_MSE_ELBO_Pop_,VAE_1000_25-07-19\mse_loss\2019-09-25_14.49.27_MSE_ELBO_Metal_,VAE_1000_25-07-19\mse_loss\2019-09-25_14.59.32_MSE_ELBO_Country_,VAE_1000_25-07-19\mse_loss\2019-09-25_15.10.04_MSE_ELBO_HIPHOP_
+
+--classifier_name
+2019-09-23-acc-64
+
+--vaes_names
+model_best,model_best,model_best,model_best,model_best
+
+--hidden_dim_vae
+64
+
+--z_dim
+16
+
+--analysis

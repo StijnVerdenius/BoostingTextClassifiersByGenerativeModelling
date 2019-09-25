@@ -13,6 +13,7 @@ from models.enums.Genre import Genre
 
 from test import Tester
 from train import Trainer
+from analyzer import Analyzer
 from utils.constants import *
 from utils.model_utils import find_right_model
 from utils.system_utils import ensure_current_directory
@@ -37,6 +38,7 @@ def main(arguments: argparse.Namespace):
         torch.cuda.manual_seed_all(args.seed)
 
     # get model from models-folder (name of class has to be identical to filename)
+    arguments.hidden_dim_vae = arguments.hidden_dim if arguments.hidden_dim_vae == 0 else arguments.hidden_dim_vae
     model = find_right_model((CLASS_DIR if arguments.train_classifier else
                               (GEN_DIR if not arguments.combined_classification else CLASS_DIR)),
                              (arguments.classifier if arguments.train_classifier else
@@ -51,7 +53,9 @@ def main(arguments: argparse.Namespace):
                              vae_files=arguments.vaes_dir,
                              input_dim=arguments.embedding_size,
                              classifier_name=arguments.classifier_name,
-                             vaes_names=arguments.vaes_names)
+                             vaes_names=arguments.vaes_names,
+                             hidden_dim_vae=arguments.hidden_dim_vae,
+                             combination_method=arguments.combination)
     model.to(device)
 
     # if we are in train mode..
@@ -59,8 +63,13 @@ def main(arguments: argparse.Namespace):
         # we are in test mode
         data_loader_test = load_data_set(arguments, TEST_SET)
 
-        tester = Tester(model, data_loader_test)
-        tester.test()
+        tester = Tester(model, data_loader_test, device=device)
+        test_logs = tester.test()
+
+        if arguments.analysis:
+            analyzer = Analyzer(model, tester, device=device, num_classes=arguments.num_classes)
+            analyzer.analyze_misclassifications(test_logs)
+
         pass  # todo: testing functionality, loading pretrained model
     else:
 
@@ -134,7 +143,8 @@ def parse() -> argparse.Namespace:
     parser.add_argument('--train-classifier', action='store_true', help='train a classifier')
     parser.add_argument('--combined_classification', action='store_true', help='combined classification')
     parser.add_argument("--device", type=str,
-                        help="Device to be used. Pick from none/cpu/cuda. If default none is used automatic check will be done")
+                        help="Device to be used. Pick from none/cpu/cuda. "
+                             "If default none is used automatic check will be done")
     parser.add_argument("--seed", type=int, default=42, metavar="S", help="random seed (default: 42)")
     parser.add_argument("--patience", type=int, default=30,
                         help="how long will the model wait for improvement before stopping training")
@@ -144,6 +154,12 @@ def parse() -> argparse.Namespace:
     parser.add_argument('--classifier_name', default="", type=str, help='classifier state-dict name under models')
     parser.add_argument('--vaes_dir', default="", type=str, help='vaes state-dict dir. Give names separated by commas')
     parser.add_argument('--vaes_names', default="", type=str, help='vaes model names under models(sep by comma)')
+    parser.add_argument('--hidden_dim_vae', default=0, type=int, help='needed only when vae and lstm have different'
+                                                                       ' dim in combination')
+    parser.add_argument('--combination', default="joint", type=str, help='joint/learn')
+
+    # analysis
+    parser.add_argument('--analysis', action='store_true', help='do analysis')
 
     # todo: add whatever you like
 

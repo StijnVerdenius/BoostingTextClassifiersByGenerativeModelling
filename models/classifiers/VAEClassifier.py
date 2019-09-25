@@ -8,12 +8,12 @@ from models.GeneralModel import GeneralModel
 class VAEClassifier(GeneralModel):
 
     def __init__(self,
-                 input_dim, hidden_dim, z_dim,
+                 hidden_dim, z_dim,
                  vae_files, vaes_names,
                  n_channels_in=(0),
                  device="cpu",
                  loss='ELBO',  # if we dont write alternatives, we'll never need to change these two
-                 generator_class='BaseVAE',
+                 generator_class='BaseVAE', only_eval=True,
                  **kwargs):
 
         super(VAEClassifier, self).__init__(n_channels_in, device, **kwargs)
@@ -29,12 +29,14 @@ class VAEClassifier(GeneralModel):
                                                 generator_class,
                                                 hidden_dim=hidden_dim,
                                                 z_dim=z_dim,
-                                                n_channels_in=input_dim,
-                                                input_dim=input_dim,
+                                                n_channels_in=n_channels_in,
+                                                input_dim=n_channels_in,
                                                 device=device
                                                 ).to(device))
+            if only_eval:
+                self.models[-1].eval()
             datamanager = DataManager(vae_file)
-            print(vaes_names[v])
+            print(vae_file)
             loaded = datamanager.load_python_obj(os.path.join('models', vaes_names[v]))
             for state_dict in loaded.values():
                 state_dict = state_dict
