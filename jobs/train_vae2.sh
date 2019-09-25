@@ -1,13 +1,14 @@
 
-for loss in MSE_ELBO NormalELBO CombinedELBO
 do
-    for genre in Rock
+    for genre in Rock Pop HipHop Metal Country
     do
-        for z_dim in 16 32 64
-        do
-            echo 'tune-vae-lr-'$lr'-hd-'$hidden_dim'-z_dim-'$z_dim'seed-42.out'
-            python3 -u main.py --generator BaseVAE --dataset_class LyricsDataset --loss ELBO --max_training_minutes 10 --embedding_size 256 --z_dim 16 --learning_rate 0.005 --hidden_dim 128 >> './jobs/tune-vae-lr-'$lr'-hd-'$hidden_dim'-z_dim-'$z_dim'seed-42.out'
-        done
+        echo 'train-vae-loss-'$loss'-genre-'$genre'-seed-42.out'
+        python3 -u main.py --generator BaseVAE --dataset_class LyricsDatasetVAE --loss $loss --max_training_minutes 10 --genre $genre --embedding_size 256 --z_dim 16 --learning_rate 0.0025 --hidden_dim 64 >> './jobs/training/vae/train-vae-loss-'$loss'-genre-'genre'-seed-42.out'
     done
 done
 
+for loss in MSE_ELBO NormalELBO CombinedELBO
+do
+    echo 'train-vae-ALL-genre-'$genre'-seed-42.out'
+    python3 -u main.py --generator BaseVAE --dataset_class LyricsDataset --loss $loss --max_training_minutes 10 --embedding_size 256 --z_dim 16 --learning_rate 0.0025 --hidden_dim 64 >> './jobs/training/vae/train-vae-ALL-genre-'$genre'-seed-42.out'
+done
