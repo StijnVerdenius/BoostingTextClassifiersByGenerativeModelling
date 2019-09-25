@@ -70,7 +70,7 @@ def main(arguments: argparse.Namespace):
 
         # get optimizer and loss function
         optimizer = find_right_model(OPTIMS, arguments.optimizer, params=model.parameters(), lr=arguments.learning_rate)
-        loss_function = find_right_model(LOSS_DIR, arguments.loss).to(device)
+        loss_function = find_right_model(LOSS_DIR, arguments.loss, device=device).to(device)
 
         # train
         trainer = Trainer(
