@@ -1,7 +1,9 @@
 import torch
+import torch.distributions as dd
 import torch.nn as nn
 
 from models.GeneralModel import GeneralModel
+
 
 ######## inspired by; https://github.com/kefirski/contiguous-succotash
 
@@ -11,6 +13,8 @@ class ELBO(GeneralModel):
         super(ELBO, self).__init__(0, device, **kwargs)
         self.losses = {"recon": 0, "reg": 0}
         self.evaluations = 0
+
+        self.normal = None
 
     def forward(self, _, mean, std, reconstructed_mean, x):
         """
@@ -24,8 +28,17 @@ class ELBO(GeneralModel):
         loss_reg = (- 0.5 * torch.sum(1 + torch.log(std ** 2) - mean ** 2 - std ** 2, dim=-1)).mean()
 
         # reconstruction loss
-        loss_recon = 0
-        loss_recon += nn.MSELoss(reduction="mean")(reconstructed_mean, x) #* (98/100)
+        # try:
+        loss_recon = -1*dd.Normal(reconstructed_mean, 1).log_prob(x).mean()
+        # loss_recon = dd.MultivariateNormal(reconstructed_mean, scale_tril=1).log_prob(x)
+        # except Exception as e:
+        #     if self.normal is None:
+        #         self.normal = .to(self.device)
+        #     else:
+        #         raise e
+        #     loss_recon = self.normal.log_prob(x)
+
+        # nn.MSELoss(reduction="mean")(reconstructed_mean, x) #* (98/100)
         # loss_recon += nn.L1Loss(reduction="mean")(reconstructed_mean, x)/100
         # loss_recon += nn.CosineSimilarity()(reconstructed_mean, x).mean()/1000
 
