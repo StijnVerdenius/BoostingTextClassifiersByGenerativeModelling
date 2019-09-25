@@ -153,6 +153,12 @@ class BaseVAE(GeneralModel):
 
         return y
 
+    def compare_metric(self, current_best, loss, accuracy) -> bool:
+        if current_best[0] > loss:
+            return True
+
+        return False
+
 
 def _test_sample_vae():
     vae = BaseVAE(n_channels_in=106, hidden_dim=64, z_dim=32)

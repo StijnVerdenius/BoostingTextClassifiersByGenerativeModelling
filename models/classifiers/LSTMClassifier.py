@@ -39,3 +39,9 @@ class LSTMClassifier(GeneralModel):
 
         output = self.output_layer_toClass(output)
         return [output.sum(dim=1)]
+
+    def compare_metric(self, current_best, loss, accuracy) -> bool:
+        if current_best[1] < accuracy:
+            return True
+
+        return False

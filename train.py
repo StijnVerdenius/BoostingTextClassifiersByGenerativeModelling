@@ -1,6 +1,7 @@
 import argparse
 import sys
 import time
+import math
 from datetime import datetime
 from typing import List, Tuple
 
@@ -80,12 +81,12 @@ class Trainer:
             print(f"{PRINTCOLOR_BOLD}Started training with the following config:{PRINTCOLOR_END}\n{self.arguments}\n\n")
             print(self._log_header)
 
-            best_accuracy = 0
+            best_metrics = (math.inf, 0)
             patience = self._patience
             # run
             for epoch in range(self.arguments.epochs):
                 # do epoch
-                epoch_progress, best_accuracy, patience = self._epoch_iteration(epoch, best_accuracy, patience)
+                epoch_progress, best_metrics, patience = self._epoch_iteration(epoch, best_metrics, patience)
 
                 # add progress-list to global progress-list
                 progress += epoch_progress
@@ -121,7 +122,7 @@ class Trainer:
     def _epoch_iteration(
         self,
         epoch_num: int,
-        best_accuracy: float,
+        best_metrics: Tuple[float, float],
         patience: int) -> Tuple[List, float, int]:
         """
         one epoch implementation
@@ -157,9 +158,9 @@ class Trainer:
                 loss_validation, acc_validation = self._evaluate()
 
                 new_best = False
-                if best_accuracy < acc_validation:
+                if self.model.compare_metric(best_metrics, loss_validation, acc_validation):
                     save_models([self.model], 'model_best')
-                    best_accuracy = acc_validation
+                    best_metrics = (loss_validation, acc_validation)
                     new_best = True
                     patience = self._patience
                 else:
@@ -186,7 +187,7 @@ class Trainer:
             if patience == 0:
                 break
 
-        return progress, best_accuracy, patience
+        return progress, best_metrics, patience
 
     def _batch_iteration(self,
                          batch: torch.Tensor,

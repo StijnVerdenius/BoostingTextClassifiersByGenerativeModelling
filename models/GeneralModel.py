@@ -10,3 +10,6 @@ class GeneralModel(nn.Module):
 
         if (len(kwargs) > 0):
             print(f"Ignored arguments in {self.__class__.__name__}: {kwargs}")
+
+    def compare_metric(self, current_best, loss, accuracy) -> bool:
+        return False
