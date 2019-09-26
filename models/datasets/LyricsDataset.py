@@ -10,8 +10,10 @@ from utils.data_manager import DataManager
 
 class LyricsDataset(Dataset):
 
-    def __init__(self, folder, set_name, **kwargs):
+    def __init__(self, folder, set_name, normalize: bool =False, **kwargs):
         super(LyricsDataset, self).__init__()
+
+        self.normalize = normalize
 
         data_manager = DataManager(folder)
 
@@ -66,4 +68,7 @@ class LyricsDataset(Dataset):
         embeddings_file.close()
         if corrupt:
             return self.__getitem__(np.random.randint(0, self.__len__()))
+
+        if (self.normalize):
+            embeddings = (embeddings+6)/12
         return embeddings, int(song_entry.genre.value)

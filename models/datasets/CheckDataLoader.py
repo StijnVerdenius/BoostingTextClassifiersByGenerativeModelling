@@ -85,7 +85,7 @@ def encode_data(data, vocabulary):
 
 class CheckDataLoader(Dataset):
 
-    def __init__(self, file="", set_name="train", **kwargs):
+    def __init__(self, file="", set_name="train", normalize:bool = False, **kwargs):
         super(CheckDataLoader, self).__init__()
         df = pd.read_csv('local_data/data/spam_dataset.csv')
         data = np.array(df.Message)

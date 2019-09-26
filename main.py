@@ -99,7 +99,7 @@ def load_data_set(arguments: argparse.Namespace,
                   set_name: str) -> DataLoader:
     """ loads specific dataset as a DataLoader """
 
-    dataset = find_right_model(DATASETS, arguments.dataset_class, folder=arguments.data_folder, set_name=set_name,
+    dataset = find_right_model(DATASETS, arguments.dataset_class, folder=arguments.data_folder, set_name=set_name, normalize=arguments.normalize_data,
                                genre=Genre.from_str(arguments.genre))
     loader = DataLoader(dataset, shuffle=(set_name is TRAIN_SET), batch_size=arguments.batch_size,
                         collate_fn=pad_and_sort_batch)
@@ -142,6 +142,7 @@ def parse() -> argparse.Namespace:
     # bool
     parser.add_argument('--test-mode', action='store_true', help='start in train_mode')
     parser.add_argument('--train-classifier', action='store_true', help='train a classifier')
+    parser.add_argument('--normalize_data', action='store_true', help='normalize data')
     parser.add_argument('--combined_classification', action='store_true', help='combined classification')
     parser.add_argument("--device", type=str,
                         help="Device to be used. Pick from none/cpu/cuda. "
