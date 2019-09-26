@@ -55,7 +55,8 @@ def main(arguments: argparse.Namespace):
                              classifier_name=arguments.classifier_name,
                              vaes_names=arguments.vaes_names,
                              hidden_dim_vae=arguments.hidden_dim_vae,
-                             combination_method=arguments.combination)
+                             combination_method=arguments.combination,
+                             generator_loss=arguments.loss)
     model.to(device)
 
     # if we are in train mode..

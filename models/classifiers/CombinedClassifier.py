@@ -13,11 +13,11 @@ class CombinedClassifier(GeneralModel):
                  hidden_dim, z_dim,
                  hidden_dim_vae, num_classes,
                  lstm_file, vae_files,
+                 generator_loss,
                  classifier_name, vaes_names,
                  # below: probably things we wont change
                  classifier_class='LSTMClassifier',
                  generator_class='BaseVAE',
-                 generator_loss='ELBO',
                  combination_method='joint',
                  only_eval=True,
                  n_channels_in=(0), device="cpu", **kwargs):
@@ -50,6 +50,7 @@ class CombinedClassifier(GeneralModel):
         lstm_file = os.path.join(GITIGNORED_DIR, RESULTS_DIR, lstm_file)
         datamanager = DataManager(lstm_file)
         loaded = datamanager.load_python_obj(os.path.join('models', classifier_name))
+
         for state_dict in loaded.values():
             state_dict = state_dict
         self.base_classifier.load_state_dict(state_dict)
@@ -93,12 +94,13 @@ class CombinedClassifier(GeneralModel):
         # todo | classification we take argmax and classify directly
 
     def joint_probability(self, pxy, regul, recon):
+
         elbo = - regul+recon
         approach_px = torch.exp(elbo)
 
-        # print(regul)
-        # print(recon)
-        # print(elbo)
+        print('Regularization', regul)
+        print('Reconstruction', recon)
+        print('ELBO', elbo)
         # print(approach_px)
         # print(pxy)
         # print(pxy*approach_px)

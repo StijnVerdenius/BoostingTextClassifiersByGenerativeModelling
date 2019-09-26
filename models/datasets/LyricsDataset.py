@@ -28,6 +28,13 @@ class LyricsDataset(Dataset):
 
         print('-- Loaded dataset:', self.set_name, '- size:', self.__len__())
 
+        self.__getitem__(0)
+        self.__getitem__(1)
+        self.__getitem__(2)
+        self.__getitem__(3)
+        self.__getitem__(4)
+        self.__getitem__(5)
+
     def setup(self, data_manager: DataManager, set_name: str):
         return data_manager.load_python_obj(f'song_lyrics.{set_name}')
 

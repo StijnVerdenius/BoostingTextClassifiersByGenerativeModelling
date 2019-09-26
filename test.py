@@ -46,7 +46,7 @@ class Tester:
 
                 log['accuracies_per_batch'].append(accuracy_batch)
                 log['true_targets'].append(targets)
-                break
+                # break
                 # if i>2:
                 #     break
             # average over all accuracy batches
