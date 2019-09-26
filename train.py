@@ -123,7 +123,7 @@ class Trainer:
         self,
         epoch_num: int,
         best_metrics: Tuple[float, float],
-        patience: int) -> Tuple[List, float, int]:
+        patience: int) -> Tuple[List, Tuple, int]:
         """
         one epoch implementation
         """
