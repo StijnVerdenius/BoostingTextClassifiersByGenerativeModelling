@@ -6,6 +6,7 @@ import torch.nn as nn
 import torch.nn.functional as F
 from torch.autograd import Variable
 from torch.nn import Parameter
+from torch.nn.utils.rnn import pack_padded_sequence, pad_packed_sequence
 from torch.utils.data import DataLoader
 
 from models.GeneralModel import GeneralModel
@@ -36,9 +37,11 @@ class Encoder(nn.Module):
         self.layer_mu = nn.Linear(hidden_dim, z_dim).to(device)
         self.layer_logvar = nn.Linear(hidden_dim, z_dim).to(device)
 
-    def forward(self, x):
+    def forward(self, x, lengths):
+        x = pack_padded_sequence(x, lengths, batch_first=True)
         x = x.float()
         lstm_output = self.lstm.forward(x)[0]
+        lstm_output, _ = pad_packed_sequence(lstm_output, batch_first=True)
         shared = self.layers.forward(lstm_output)
 
         mean = self.layer_mu(shared)
@@ -111,17 +114,14 @@ class BaseVAE(GeneralModel):
         self.encoder = Encoder(n_channels_in, hidden_dim, z_dim, device=device)
         self.decoder = Decoder(n_channels_in, hidden_dim, z_dim, device=device)
 
-    def forward(self, x: torch.Tensor, _):
-
-        # normalize
-        x = (x + 6) / 12
+    def forward(self, x: torch.Tensor, lengths: torch.Tensor):
 
         # ensure device
         x = x.to(self.device)
 
         # get Q(z|x)
         self.encoder: Encoder
-        mean, std = self.encoder.forward(x)
+        mean, std = self.encoder.forward(x, lengths)
 
         # obtain batch size
         batch_size = x.shape[0]
