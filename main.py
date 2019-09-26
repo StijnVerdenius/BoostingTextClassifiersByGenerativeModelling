@@ -71,9 +71,9 @@ def main(arguments: argparse.Namespace):
         classifier_name=arguments.classifier_name,
         hidden_dim_vae=arguments.hidden_dim_vae,
         vaes_names=arguments.vaes_names,
-        dataset_options=data_loader_train.dataset).to(device)
-                             combination_method=arguments.combination,
-                             generator_loss=arguments.loss)
+        dataset_options=data_loader_train.dataset,
+        combination_method=arguments.combination,
+        generator_loss=arguments.loss).to(device)
 
     # if we are in train mode..
     if arguments.test_mode:
