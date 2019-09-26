@@ -7,8 +7,9 @@ from torch.utils.data import Dataset
 
 from utils.data_manager import DataManager
 
+from models.datasets.BaseDataset import BaseDataset
 
-class LyricsDataset(Dataset):
+class LyricsDataset(BaseDataset):
 
     def __init__(self, folder, set_name, normalize: bool =False, **kwargs):
         super(LyricsDataset, self).__init__()
@@ -29,6 +30,9 @@ class LyricsDataset(Dataset):
         assert os.path.exists(self._embeddings_file_path)
 
         print('-- Loaded dataset:', self.set_name, '- size:', self.__len__())
+
+    def use_collate_function(self) -> bool:
+        return True
 
         self.__getitem__(0)
         self.__getitem__(1)

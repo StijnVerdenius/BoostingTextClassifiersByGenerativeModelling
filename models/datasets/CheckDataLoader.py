@@ -2,6 +2,7 @@ from torch.utils.data import Dataset
 import pandas as pd
 import numpy as np
 import torch
+from models.datasets.BaseDataset import BaseDataset
 
 # hard coded filenames etc because its sole purpose it to check if model works
 
@@ -83,7 +84,7 @@ def encode_data(data, vocabulary):
     return encoded_data
 
 
-class CheckDataLoader(Dataset):
+class CheckDataLoader(BaseDataset):
 
     def __init__(self, file="", set_name="train", normalize:bool = False, **kwargs):
         super(CheckDataLoader, self).__init__()
@@ -109,6 +110,9 @@ class CheckDataLoader(Dataset):
         self.encoded_data = torch.from_numpy(encoded_data.astype(float))  # V x Seq x B
         self.labels = torch.from_numpy(labels)
         self.encoded_data = self.encoded_data.permute([-1, 1, 0])  # B x Seq x Vocab
+
+    def use_collate_function(self) -> bool:
+        return True
 
     def __len__(self):
         return self.encoded_data.shape[0]

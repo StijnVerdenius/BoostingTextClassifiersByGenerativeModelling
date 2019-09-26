@@ -15,7 +15,6 @@ from utils.constants import *
 from utils.model_utils import save_models, calculate_accuracy
 from utils.system_utils import setup_directories, save_codebase_of_run
 
-
 class Trainer:
 
     def __init__(self,
@@ -141,7 +140,7 @@ class Trainer:
             print(f'Train: {i}/{data_loader_length}       \r', end='')
 
             # do forward pass and whatnot on batch
-            loss_batch, accuracy_batch = self._batch_iteration(batch, targets, lengths)
+            loss_batch, accuracy_batch = self._batch_iteration(batch, targets, lengths, i)
             train_loss += loss_batch
             train_accuracy += accuracy_batch
 
@@ -193,6 +192,7 @@ class Trainer:
                          batch: torch.Tensor,
                          targets: torch.Tensor,
                          lengths: torch.Tensor,
+                         step: int,
                          train_mode: bool = True) -> Tuple[float, float]:
         """
         runs forward pass on batch and backward pass if in train_mode
@@ -208,7 +208,7 @@ class Trainer:
         else:
             self.model.eval()
 
-        output = self.model.forward(batch, lengths)
+        output = self.model.forward(batch, lengths=lengths, step=step)
         loss = self.loss_function.forward(targets, *output)
 
         if train_mode:
@@ -235,7 +235,7 @@ class Trainer:
             print(f'Validation: {i}/{data_loader_length}       \r', end='')
 
             # do forward pass and whatnot on batch
-            loss_batch, accuracy_batch = self._batch_iteration(batch, targets, lengths, train_mode=False)
+            loss_batch, accuracy_batch = self._batch_iteration(batch, targets, lengths, i, train_mode=False)
             accuracies.append(accuracy_batch)
             losses.append(loss_batch)
 

@@ -105,16 +105,16 @@ class Decoder(nn.Module):
 
 class BaseVAE(GeneralModel):
 
-    def __init__(self, n_channels_in=(0), hidden_dim=100, z_dim=20, device="cpu", **kwargs):
-        super(BaseVAE, self).__init__(n_channels_in, device, **kwargs)
+    def __init__(self, embedding_size=256, hidden_dim=100, z_dim=20, device="cpu", **kwargs):
+        super(BaseVAE, self).__init__(embedding_size, device, **kwargs)
 
         self.hidden_dim = hidden_dim
         self.z_dim = z_dim
         self.device = device
-        self.encoder = Encoder(n_channels_in, hidden_dim, z_dim, device=device)
-        self.decoder = Decoder(n_channels_in, hidden_dim, z_dim, device=device)
+        self.encoder = Encoder(embedding_size, hidden_dim, z_dim, device=device)
+        self.decoder = Decoder(embedding_size, hidden_dim, z_dim, device=device)
 
-    def forward(self, x: torch.Tensor, lengths: torch.Tensor):
+    def forward(self, x: torch.Tensor, lengths: torch.Tensor, **kwargs):
 
         # ensure device
         x = x.to(self.device)
@@ -127,7 +127,7 @@ class BaseVAE(GeneralModel):
         batch_size = x.shape[0]
 
         # sample an epsilon
-        epsilon = torch.randn(mean.shape).to(self.device)
+        epsilon = torch.randn(mean.shape, device=self.device)
         epsilon: torch.Tensor
 
         # reperimatrization-sample z
@@ -161,7 +161,7 @@ class BaseVAE(GeneralModel):
 
 
 def _test_sample_vae():
-    vae = BaseVAE(n_channels_in=106, hidden_dim=64, z_dim=32)
+    vae = BaseVAE(embedding_size=106, hidden_dim=64, z_dim=32)
     vae: BaseVAE
 
     datamanager = DataManager("./local_data/results/kaas3")
@@ -195,7 +195,7 @@ def _test_sample_vae():
 def _test_vae_forward():
     testbatch = torch.randn((128, 20, 100))  # batch, seq_len, embedding
 
-    vae = BaseVAE(n_channels_in=100, hidden_dim=256, z_dim=32)
+    vae = BaseVAE(embedding_size=100, hidden_dim=256, z_dim=32)
     vae: BaseVAE
     vae.eval()
 
@@ -206,7 +206,7 @@ def _test_vae_forward():
 
 
 def _test_grouping_vae():
-    vae = BaseVAE(n_channels_in=106, hidden_dim=128, z_dim=128)
+    vae = BaseVAE(embedding_size=106, hidden_dim=128, z_dim=128)
     vae: BaseVAE
 
     datamanager = DataManager("./local_data/results/spamham")
@@ -244,7 +244,7 @@ def _test_grouping_vae():
 
 
 def _test_reconstruction_vae():
-    vae = BaseVAE(n_channels_in=106, hidden_dim=128, z_dim=128)
+    vae = BaseVAE(embedding_size=106, hidden_dim=128, z_dim=128)
     vae: BaseVAE
 
     datamanager = DataManager("./local_data/results/spamham")
