@@ -115,7 +115,7 @@ class LyricsRawDataset(BaseDataset):
         # with open(self.raw_data_path, 'r', encoding='utf-8') as file:
 
         for song_entry in song_entries:
-            if song_entry.genre != self.genre:
+            if song_entry.genre != self.genre and self.genre != None:
                 continue
 
             words = word_tokenize(song_entry.lyrics)
