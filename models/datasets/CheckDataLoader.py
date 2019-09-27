@@ -95,7 +95,7 @@ class CheckDataLoader(Dataset):
         # convert string labels into int labels
         labels = rewrite_labels(labels)
         # fix phrase length
-        max_chars = 50
+        max_chars = 150
         data = fix_phrase_len(data, max_chars)
 
         # one-hot encodings

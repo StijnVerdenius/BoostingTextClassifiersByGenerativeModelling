@@ -114,7 +114,7 @@ class BaseVAE(GeneralModel):
     def forward(self, x: torch.Tensor, _):
 
         # normalize
-        x = (x + 6) / 12
+        # x = (x + 6) / 12
 
         # ensure device
         x = x.to(self.device)

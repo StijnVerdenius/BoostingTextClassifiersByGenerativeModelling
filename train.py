@@ -208,7 +208,7 @@ class Trainer:
         else:
             self.model.eval()
 
-        output = self.model.forward(batch, lengths)
+        output = self.model.forward(batch, lengths, targets)
         loss = self.loss_function.forward(targets, *output)
 
         if train_mode:
