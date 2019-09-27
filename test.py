@@ -4,6 +4,7 @@ from utils.model_utils import calculate_accuracy
 from torch.utils.data import DataLoader
 from utils.constants import *
 from typing import List, Tuple
+from models.enums.Genre import Genre
 
 
 class Tester:

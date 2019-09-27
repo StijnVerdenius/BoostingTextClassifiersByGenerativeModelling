@@ -6,7 +6,6 @@ from models.GeneralModel import GeneralModel
 from models.classifiers import VAEClassifier
 from torch.autograd import Variable
 
-
 class CombinedClassifier(GeneralModel):
 
     def __init__(self,
@@ -14,10 +13,11 @@ class CombinedClassifier(GeneralModel):
                  hidden_dim_vae, num_classes,
                  lstm_file, vae_files,
                  generator_loss,
+                 generator_class,
+                 arguments,
                  classifier_name, vaes_names,
                  # below: probably things we wont change
                  classifier_class='LSTMClassifier',
-                 generator_class='BaseVAE',
                  combination_method='joint',
                  only_eval=True,
                  n_channels_in=(0), device="cpu", **kwargs):
@@ -41,7 +41,7 @@ class CombinedClassifier(GeneralModel):
                                                n_channels_in=n_channels_in,
                                                hidden_dim=hidden_dim_vae,
                                                z_dim=z_dim,
-                                               only_eval=only_eval
+                                               only_eval=only_eval,
                                                ).to(device)
 
         if only_eval:
@@ -82,11 +82,6 @@ class CombinedClassifier(GeneralModel):
                                                     out_vaes_reconst)
         elif self.combination_method is 'learn':
             combined_score = self.weighted_sum(out_base_class_scores, out_elbo)
-
-        # print('lstm', out_base_class_scores)
-        # print('vreg', out_vaes_regul)
-        # print('vrec', out_vaes_reconst)
-        # print('comb', combined_score)
 
         return combined_score, (out_base_class_scores, out_elbo)
 

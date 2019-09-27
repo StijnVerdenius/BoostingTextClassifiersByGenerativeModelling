@@ -21,7 +21,6 @@ from utils.system_utils import ensure_current_directory
 from utils.dataloader_utils import pad_and_sort_batch
 import numpy as np
 import random
-from multiprocessing import cpu_count
 
 
 def main(arguments: argparse.Namespace):
@@ -73,7 +72,12 @@ def main(arguments: argparse.Namespace):
         vaes_names=arguments.vaes_names,
         dataset_options=data_loader_train.dataset,
         combination_method=arguments.combination,
-        generator_loss=arguments.loss).to(device)
+        generator_loss=arguments.loss,
+        generator_class=arguments.generator,
+        dataset_sentenceVAE=arguments.dataset_class_sentencevae,
+        arguments=arguments,
+        z_dim=arguments.z_dim,
+        n_channels_in=arguments.embedding_size).to(device)
 
     # if we are in train mode..
     if arguments.test_mode:
@@ -152,6 +156,9 @@ def parse() -> argparse.Namespace:
     parser.add_argument('--optimizer', default="Adam", type=str, help='optimizer model name')
     parser.add_argument('--data_folder', default=os.path.join('local_data', 'data'), type=str, help='data folder path')
     parser.add_argument('--dataset_class', default="LyricsDataset", type=str, help='dataset name')
+    parser.add_argument('--dataset_class_sentencevae', default=None, type=str, help='dataset for'
+                                                                                                  ' sentence vae')
+
     parser.add_argument('--run_name', default="", type=str, help='extra identification for run')
     parser.add_argument('--genre', type=str, default=None,
                         help='vae-genre')
@@ -174,8 +181,7 @@ def parse() -> argparse.Namespace:
     parser.add_argument('--classifier_name', default="", type=str, help='classifier state-dict name under models')
     parser.add_argument('--vaes_dir', default="", type=str, help='vaes state-dict dir. Give names separated by commas')
     parser.add_argument('--vaes_names', default="", type=str, help='vaes model names under models(sep by comma)')
-    parser.add_argument('--hidden_dim_vae', default=0, type=int, help='needed only when vae and lstm have different'
-                                                                       ' dim in combination')
+    parser.add_argument('--hidden_dim_vae', default=0, type=int, help='needed only when vae and lstm have different')
     parser.add_argument('--combination', default="joint", type=str, help='joint/learn')
 
     # analysis

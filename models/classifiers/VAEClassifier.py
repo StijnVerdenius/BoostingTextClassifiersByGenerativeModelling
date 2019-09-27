@@ -1,20 +1,17 @@
-import torch.nn as nn
-import torch
 from utils.constants import *
 from utils.model_utils import find_right_model
 from models.GeneralModel import GeneralModel
-from models.enums import Genre
+from models.enums.Genre import Genre
 
 class VAEClassifier(GeneralModel):
 
     def __init__(self,
                  hidden_dim, z_dim,
                  vae_files, vaes_names,
-                 generator_loss,
+                 generator_loss, generator_class,
                  n_channels_in=(0),
                  device="cpu",
-                 # if we dont write alternatives, we'll never need to change these two
-                 generator_class='BaseVAE', only_eval=True,
+                 only_eval=True,
                  **kwargs):
 
         super(VAEClassifier, self).__init__(n_channels_in, device, **kwargs)
@@ -28,29 +25,23 @@ class VAEClassifier(GeneralModel):
         for v, vae_file in enumerate(vae_files):
             vae_file = os.path.join(GITIGNORED_DIR, RESULTS_DIR, vae_file)
 
-            # index = Genre.Pop if 'Pop' in vae_file else (
-            #     Genre.HipHop if 'Hip-Hop' in vae_file else (
-            #         Genre.Rock if 'Rock' in vae_file else (
-            #             Genre.Metal if 'Metal' in vae_file else (
-            #                 Genre.Country if 'Country' in vae_file else(
-            #                     )))))
-            index = 0 if 'pop' in vae_file.lower() else (
-                1 if 'hip-hop' in vae_file.lower() else (
-                    2 if 'rock' in vae_file.lower() else (
-                        3 if 'metal' in vae_file.lower() else (
-                            4 if 'country' in vae_file.lower() else(
+            index = Genre.Pop if 'Pop' in vae_file else (
+                Genre.HipHop if 'Hip-Hop' in vae_file else (
+                    Genre.Rock if 'Rock' in vae_file else (
+                        Genre.Metal if 'Metal' in vae_file else (
+                            Genre.Country if 'Country' in vae_file else(
                                 )))))
 
             # if 'rock' in vae_file:
             #     z_dim = 32
-
+            print(Genre.name(index))
             self.models[index] = find_right_model(GEN_DIR,
                                                   generator_class,
                                                   hidden_dim=hidden_dim,
                                                   z_dim=z_dim,
                                                   n_channels_in=n_channels_in,
                                                   input_dim=n_channels_in,
-                                                  device=device
+                                                  device=device,
                                                   ).to(device)
 
             # if 'rock' in vae_file:
