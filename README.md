@@ -18,3 +18,4 @@ http://proceedings.mlr.press/v70/yang17d/yang17d.pdf
 https://github.com/kefirski/contiguous-succotash
 https://arxiv.org/pdf/1809.03259.pdf
 https://arxiv.org/pdf/1511.06349.pdf
+https://arxiv.org/pdf/1809.03259.pdf

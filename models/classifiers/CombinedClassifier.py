@@ -95,12 +95,13 @@ class CombinedClassifier(GeneralModel):
 
     def joint_probability(self, pxy, regul, recon):
 
-        elbo = - regul+recon
-        approach_px = torch.exp(elbo)
+        elbo = regul+recon
+        approach_px = torch.exp(-elbo)
 
         print('Regularization', regul)
         print('Reconstruction', recon)
         print('ELBO', elbo)
+        print('exp elbo', approach_px)
         # print(approach_px)
         # print(pxy)
         # print(pxy*approach_px)

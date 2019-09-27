@@ -6,6 +6,7 @@ import torch.nn as nn
 import torch.nn.functional as F
 from torch.autograd import Variable
 from torch.nn import Parameter
+from torch.nn.utils.rnn import pack_padded_sequence, pad_packed_sequence
 from torch.utils.data import DataLoader
 
 from models.GeneralModel import GeneralModel
@@ -36,9 +37,11 @@ class Encoder(nn.Module):
         self.layer_mu = nn.Linear(hidden_dim, z_dim).to(device)
         self.layer_logvar = nn.Linear(hidden_dim, z_dim).to(device)
 
-    def forward(self, x):
+    def forward(self, x, lengths):
+        x = pack_padded_sequence(x, lengths, batch_first=True)
         x = x.float()
         lstm_output = self.lstm.forward(x)[0]
+        lstm_output, _ = pad_packed_sequence(lstm_output, batch_first=True)
         shared = self.layers.forward(lstm_output)
 
         mean = self.layer_mu(shared)
@@ -102,32 +105,28 @@ class Decoder(nn.Module):
 
 class BaseVAE(GeneralModel):
 
-    def __init__(self, n_channels_in=(0), hidden_dim=100, z_dim=20, device="cpu", **kwargs):
-        super(BaseVAE, self).__init__(n_channels_in, device, **kwargs)
+    def __init__(self, embedding_size=256, hidden_dim=100, z_dim=20, device="cpu", **kwargs):
+        super(BaseVAE, self).__init__(embedding_size, device, **kwargs)
 
         self.hidden_dim = hidden_dim
         self.z_dim = z_dim
         self.device = device
-        self.encoder = Encoder(n_channels_in, hidden_dim, z_dim, device=device)
-        self.decoder = Decoder(n_channels_in, hidden_dim, z_dim, device=device)
+        self.encoder = Encoder(embedding_size, hidden_dim, z_dim, device=device)
+        self.decoder = Decoder(embedding_size, hidden_dim, z_dim, device=device)
 
-    def forward(self, x: torch.Tensor, _):
-
-        # normalize
-        x = (x + 6) / 12
-
+    def forward(self, x: torch.Tensor, lengths: torch.Tensor, **kwargs):
         # ensure device
         x = x.to(self.device)
 
         # get Q(z|x)
         self.encoder: Encoder
-        mean, std = self.encoder.forward(x)
+        mean, std = self.encoder.forward(x, lengths)
 
         # obtain batch size
         batch_size = x.shape[0]
 
         # sample an epsilon
-        epsilon = torch.randn(mean.shape).to(self.device)
+        epsilon = torch.randn(mean.shape, device=self.device)
         epsilon: torch.Tensor
 
         # reperimatrization-sample z
@@ -161,7 +160,7 @@ class BaseVAE(GeneralModel):
 
 
 def _test_sample_vae():
-    vae = BaseVAE(n_channels_in=106, hidden_dim=64, z_dim=32)
+    vae = BaseVAE(embedding_size=106, hidden_dim=64, z_dim=32)
     vae: BaseVAE
 
     datamanager = DataManager("./local_data/results/kaas3")
@@ -195,7 +194,7 @@ def _test_sample_vae():
 def _test_vae_forward():
     testbatch = torch.randn((128, 20, 100))  # batch, seq_len, embedding
 
-    vae = BaseVAE(n_channels_in=100, hidden_dim=256, z_dim=32)
+    vae = BaseVAE(embedding_size=100, hidden_dim=256, z_dim=32)
     vae: BaseVAE
     vae.eval()
 
@@ -206,7 +205,7 @@ def _test_vae_forward():
 
 
 def _test_grouping_vae():
-    vae = BaseVAE(n_channels_in=106, hidden_dim=128, z_dim=128)
+    vae = BaseVAE(embedding_size=106, hidden_dim=128, z_dim=128)
     vae: BaseVAE
 
     datamanager = DataManager("./local_data/results/spamham")
@@ -244,7 +243,7 @@ def _test_grouping_vae():
 
 
 def _test_reconstruction_vae():
-    vae = BaseVAE(n_channels_in=106, hidden_dim=128, z_dim=128)
+    vae = BaseVAE(embedding_size=106, hidden_dim=128, z_dim=128)
     vae: BaseVAE
 
     datamanager = DataManager("./local_data/results/spamham")

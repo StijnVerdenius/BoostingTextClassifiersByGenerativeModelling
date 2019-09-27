@@ -59,7 +59,7 @@ class VAEClassifier(GeneralModel):
             if only_eval:
                 self.models[index].eval()
             datamanager = DataManager(vae_file)
-            print(vae_file)
+            # print(vae_file)
             loaded = datamanager.load_python_obj(os.path.join('models', vaes_names[v]))
             for state_dict in loaded.values():
                 state_dict = state_dict

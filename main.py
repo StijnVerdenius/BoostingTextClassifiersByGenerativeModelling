@@ -10,6 +10,7 @@ import sys
 from torch.utils.data import DataLoader
 
 from models.enums.Genre import Genre
+from models.datasets.BaseDataset import BaseDataset
 
 from test import Tester
 from train import Trainer
@@ -20,6 +21,7 @@ from utils.system_utils import ensure_current_directory
 from utils.dataloader_utils import pad_and_sort_batch
 import numpy as np
 import random
+from multiprocessing import cpu_count
 
 
 def main(arguments: argparse.Namespace):
@@ -37,33 +39,44 @@ def main(arguments: argparse.Namespace):
         torch.backends.cudnn.benchmark = False
         torch.cuda.manual_seed_all(args.seed)
 
+    data_loader_train : DataLoader = None
+    data_loader_validation: DataLoader = None
+    data_loader_test: DataLoader = None
+
+    if arguments.test_mode:
+        # we are in test mode
+        data_loader_test = load_dataloader(arguments, TEST_SET)
+    else:
+        # load needed data
+        data_loader_train = load_dataloader(arguments, TRAIN_SET)
+        data_loader_validation = load_dataloader(arguments, VALIDATION_SET)
+
+
     # get model from models-folder (name of class has to be identical to filename)
     arguments.hidden_dim_vae = arguments.hidden_dim if arguments.hidden_dim_vae == 0 else arguments.hidden_dim_vae
-    model = find_right_model((CLASS_DIR if arguments.train_classifier else
-                              (GEN_DIR if not arguments.combined_classification else CLASS_DIR)),
-                             (arguments.classifier if arguments.train_classifier else
-                              (arguments.generator if not arguments.combined_classification
-                               else arguments.classifier)),
-                             n_channels_in=arguments.embedding_size,
-                             num_classes=arguments.num_classes,
-                             hidden_dim=arguments.hidden_dim,
-                             z_dim=arguments.z_dim,
-                             device=device,
-                             lstm_file=arguments.classifier_dir,
-                             vae_files=arguments.vaes_dir,
-                             input_dim=arguments.embedding_size,
-                             classifier_name=arguments.classifier_name,
-                             vaes_names=arguments.vaes_names,
-                             hidden_dim_vae=arguments.hidden_dim_vae,
-                             combination_method=arguments.combination,
-                             generator_loss=arguments.loss)
-    model.to(device)
+    model = find_right_model(
+        (CLASS_DIR if arguments.train_classifier else 
+        (GEN_DIR if not arguments.combined_classification else CLASS_DIR)),
+        (arguments.classifier if arguments.train_classifier else
+        (arguments.generator if not arguments.combined_classification
+        else arguments.classifier)),
+        embedding_size=arguments.embedding_size,
+        num_classes=arguments.num_classes,
+        hidden_dim=arguments.hidden_dim,
+        latent_size=arguments.z_dim,
+        device=device,
+        lstm_file=arguments.classifier_dir,
+        vae_files=arguments.vaes_dir,
+        input_dim=arguments.embedding_size,
+        classifier_name=arguments.classifier_name,
+        hidden_dim_vae=arguments.hidden_dim_vae,
+        vaes_names=arguments.vaes_names,
+        dataset_options=data_loader_train.dataset,
+        combination_method=arguments.combination,
+        generator_loss=arguments.loss).to(device)
 
     # if we are in train mode..
     if arguments.test_mode:
-        # we are in test mode
-        data_loader_test = load_data_set(arguments, TEST_SET)
-
         tester = Tester(model, data_loader_test, device=device)
         test_logs = tester.test()
 
@@ -71,16 +84,11 @@ def main(arguments: argparse.Namespace):
             analyzer = Analyzer(model, tester, device=device, num_classes=arguments.num_classes)
             analyzer.analyze_misclassifications(test_logs)
 
-        pass  # todo: testing functionality, loading pretrained model
     else:
-
-        # load needed data
-        data_loader_train = load_data_set(arguments, TRAIN_SET)
-        data_loader_validation = load_data_set(arguments, VALIDATION_SET)
 
         # get optimizer and loss function
         optimizer = find_right_model(OPTIMS, arguments.optimizer, params=model.parameters(), lr=arguments.learning_rate)
-        loss_function = find_right_model(LOSS_DIR, arguments.loss, device=device).to(device)
+        loss_function = find_right_model(LOSS_DIR, arguments.loss, dataset_options=data_loader_train.dataset, device=device).to(device)
 
         # train
         trainer = Trainer(
@@ -95,15 +103,25 @@ def main(arguments: argparse.Namespace):
         trainer.train()
 
 
-def load_data_set(arguments: argparse.Namespace,
+def load_dataloader(arguments: argparse.Namespace,
                   set_name: str) -> DataLoader:
     """ loads specific dataset as a DataLoader """
 
-    dataset = find_right_model(DATASETS, arguments.dataset_class, folder=arguments.data_folder, set_name=set_name,
-                               genre=Genre.from_str(arguments.genre))
-    loader = DataLoader(dataset, shuffle=(set_name is TRAIN_SET), batch_size=arguments.batch_size,
-                        collate_fn=pad_and_sort_batch)
-    # todo: revisit and validation checks
+    dataset : BaseDataset = find_right_model(DATASETS,
+        arguments.dataset_class,
+        folder=arguments.data_folder,
+        set_name=set_name,
+        genre=Genre.from_str(arguments.genre),
+        normalize=arguments.normalize_data)
+
+    loader = DataLoader(
+        dataset,
+        shuffle=(set_name is TRAIN_SET),
+        batch_size=arguments.batch_size)
+
+    if dataset.use_collate_function():
+        loader.collate_fn = pad_and_sort_batch
+
     return loader
 
 
@@ -142,6 +160,7 @@ def parse() -> argparse.Namespace:
     # bool
     parser.add_argument('--test-mode', action='store_true', help='start in train_mode')
     parser.add_argument('--train-classifier', action='store_true', help='train a classifier')
+    parser.add_argument('--normalize_data', action='store_true', help='normalize data')
     parser.add_argument('--combined_classification', action='store_true', help='combined classification')
     parser.add_argument("--device", type=str,
                         help="Device to be used. Pick from none/cpu/cuda. "
