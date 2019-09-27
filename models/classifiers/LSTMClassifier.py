@@ -14,23 +14,23 @@ class LSTMClassifier(GeneralModel):
                  hidden_dim=256,
                  dropout=0.0,
                  batch_first=True,
-                 n_channels_in=(0),
+                 embedding_size=256,
                  bidirectional=True,
                  device="cpu", **kwargs):
 
-        super(LSTMClassifier, self).__init__(n_channels_in, device, **kwargs)
+        super(LSTMClassifier, self).__init__(embedding_size, device, **kwargs)
 
         self.lstm_num_layers = lstm_num_layers
         self.lstm_num_hidden = hidden_dim
         self.num_classes = num_classes
         self.device = device
-        self.model = nn.LSTM(input_size=n_channels_in, hidden_size=hidden_dim,
+        self.model = nn.LSTM(input_size=embedding_size, hidden_size=hidden_dim,
                              num_layers=lstm_num_layers, dropout=dropout, batch_first=batch_first,
                              bidirectional=bidirectional)
 
         self.output_layer_toClass = nn.Linear(hidden_dim*2, num_classes, bias=False)
 
-    def forward(self, x, lengths, h0=None, c0=None):
+    def forward(self, x, lengths, **kwargs):
 
         x_packed = pack_padded_sequence(x, lengths, batch_first=True)
 

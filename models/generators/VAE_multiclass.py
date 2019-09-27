@@ -68,7 +68,7 @@ class VAE_multiclass(GeneralModel):
         self.device = device
         self.encoder = Encoder(n_channels_in, hidden_dim, z_dim, device=device)
 
-    def forward(self, x, _, label):
+    def forward(self, x, lengths=None, step=None, labe=None):
         x = x.to(self.device)
         label = label.to(self.device)
 
