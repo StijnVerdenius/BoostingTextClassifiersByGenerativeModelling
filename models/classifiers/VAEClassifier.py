@@ -56,12 +56,14 @@ class VAEClassifier(GeneralModel):
         # for model in self.models:
         #     print(model is self.models[0])
 
-    def forward(self, inp):
-        regs, recons, = [], []  # todo make sure one forward doesn't affect the other? or the loss?
+    def forward(self, inp, lengths, step, targets):
+        regs, recons, losses = [], [], [] # todo make sure one forward doesn't affect the other? or the loss?
         for model in self.models:
-            output = model.forward(inp.detach(), None)
-            reg, recon = self.loss_func.test(None, *output)
-            regs.append(reg)
-            recons.append(recon)
-        return regs, recons
+            output = model.forward(inp.detach(), lengths, step)
+            # reg, recon = self.loss_func.test(None, *output)
+            loss = self.loss_func.forward(targets, *output)
+            losses.append(loss)
+            # regs.append(reg)
+            # recons.append(recon)
+        return losses
 

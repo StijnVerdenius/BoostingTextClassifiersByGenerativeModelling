@@ -13,6 +13,7 @@ class Tester:
     def __init__(self,
                  model,
                  data_loader_test: DataLoader,
+                 data_loader_sentence,
                  model_state_path='',
                  device='cpu'):
 
@@ -20,6 +21,7 @@ class Tester:
         self.model = model
         self.model_state_path = model_state_path
         self.data_loader_test = data_loader_test
+        self.data_loader_sentence = data_loader_sentence
         self.device = device
         self.model.eval()
 
@@ -41,18 +43,19 @@ class Tester:
                    'accuracies_per_batch': [],
                    'true_targets': []}
 
-            batch2, targets2 = None, None
-            for i, items in enumerate(self.data_loader_test):
-                if 'Wrapper' in type(self.data_loader_test).__name__:
-                    (batch, targets, lengths), (batch2, targets2) = items
-                else:
-                    (batch, targets, lengths) = items
-                print(items)
-                accuracy_batch = self._batch_iteration(batch, targets, lengths, log, (batch2, targets2))
+            # for i, items in enumerate(self.data_loader_test):
+            for i, items in enumerate(zip(self.data_loader_test, self.data_loader_sentence)):
+                (batch, targets, lengths), (batch2, targets2, lengths2) = items
+                # if 'Wrapper' in type(self.data_loader_test.dataset).__name__:
+                #     (batch, targets, lengths), (batch2, targets2, lengths2) = items
+                # else:
+                #     (batch, targets, lengths) = items
+
+                accuracy_batch = self._batch_iteration(batch, targets, lengths, log, (batch2, targets2, lengths), i)
 
                 log['accuracies_per_batch'].append(accuracy_batch)
                 log['true_targets'].append(targets)
-                break
+                # break
                 # if i>2:
                 #     break
             # average over all accuracy batches
@@ -76,20 +79,21 @@ class Tester:
                          targets: torch.Tensor,
                          lengths: torch.Tensor,
                          log,
-                         sentencebatch):
+                         sentencebatch, step):
         """
         runs forward pass on batch and backward pass if in train_mode
         """
-        batch2, targets2 = sentencebatch
+        batch2, targets2, lengths2 = sentencebatch
         batch = batch.to(self.device).detach()
         targets = targets.to(self.device).detach()
         lengths = lengths.to(self.device).detach()
 
-        if batch2:
+        if batch2 is not None:
             batch2 = batch2.to(self.device).detach()
             targets2 = targets2.to(self.device).detach()
+            lengths2 = lengths2.to(self.device).detach()
 
-        output = self.model.forward(batch, lengths, (batch2, targets2))
+        output = self.model.forward(batch, targets, lengths, (batch2, targets2, lengths2), step)
 
         final_scores_per_class = output
         if 'Combined' in type(self.model).__name__:

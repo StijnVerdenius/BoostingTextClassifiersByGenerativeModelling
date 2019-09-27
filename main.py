@@ -45,10 +45,13 @@ def main(arguments: argparse.Namespace):
     if arguments.test_mode:
         # we are in test mode
         data_loader_test = load_dataloader(arguments, TEST_SET)
-        # data_loader_sentenceVAE = None
-        # if arguments.dataset_class_sentencevae:
-        #     arguments.dataset_class = arguments.dataset_class_sentencevae
-        #     data_loader_sentenceVAE = load_dataloader(arguments, TEST_SET)
+        data_loader_sentenceVAE = None
+        if arguments.dataset_class_sentencevae:
+            arguments.dataset_class = arguments.dataset_class_sentencevae
+            data_loader_sentenceVAE = load_dataloader(arguments, TEST_SET)
+
+        # print(data_loader_test.dataset.__len__(),
+        #       data_loader_sentenceVAE.dataset.__len__())
     else:
         # load needed data
         data_loader_train = load_dataloader(arguments, TRAIN_SET)
@@ -74,7 +77,7 @@ def main(arguments: argparse.Namespace):
         classifier_name=arguments.classifier_name,
         hidden_dim_vae=arguments.hidden_dim_vae,
         vaes_names=arguments.vaes_names,
-        dataset_options=data_loader_test.dataset if data_loader_train is None else data_loader_train.dataset,
+        dataset_options=data_loader_sentenceVAE.dataset if data_loader_train is None else data_loader_train.dataset,
         combination_method=arguments.combination,
         generator_loss=arguments.loss,
         generator_class=arguments.generator,
@@ -85,7 +88,7 @@ def main(arguments: argparse.Namespace):
 
     # if we are in train mode..
     if arguments.test_mode:
-        tester = Tester(model, data_loader_test, device=device)
+        tester = Tester(model, data_loader_test, device=device, data_loader_sentence=data_loader_sentenceVAE)
         test_logs = tester.test()
 
         if arguments.analysis:

@@ -25,10 +25,9 @@ class WrapperLoader(Dataset):
         return self.data_loader_test.dataset.__len__()
 
     def __getitem__(self, idx):
-        print(self.data_loader_test.dataset.__len__())
-        print(self.data_loader_sentenceVAE.dataset.__len__())
-
-        return self.data_loader_test.dataset.__getitem__(idx), self.data_loader_sentenceVAE.dataset.__getitem__(idx)
+        embedding1, label1 = self.data_loader_test.dataset.__getitem__(idx)
+        inp2, target2, length2 = self.data_loader_sentenceVAE.dataset.__getitem__(idx)
+        return embedding1, label1, inp2, target2, length2
 
     def load_dataloader2(self, arguments, set_name: str) -> DataLoader:
         """ loads specific dataset as a DataLoader """

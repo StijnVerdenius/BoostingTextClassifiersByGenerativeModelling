@@ -67,18 +67,23 @@ class CombinedClassifier(GeneralModel):
             self.W_classifier.requires_grad = True
             self.W_vaes.requires_grad = True
 
-    def forward(self, inp, lengths, inp_sentence):
-        inp2, _ = inp_sentence
+    def forward(self, inp, targets, lengths, inp_sentence, step):
+        inp2, targets2, lengths2 = inp_sentence
         out_base = self.base_classifier.forward(inp.detach(), lengths.detach())  # need to put through softmax
         out_base_class_scores = nn.functional.softmax(*out_base, dim=-1).detach()
 
-        out_vaes_regul, out_vaes_reconst = self.vae_classifier.forward(inp2)
+        # out_vaes_regul, out_vaes_reconst = self.vae_classifier.forward(inp2, lengths2, step, targets2)
+        loss = self.vae_classifier.forward(inp2, lengths2, step, targets2)
+        out_vaes_regul, out_vaes_reconst = loss, loss #NEWLOSSCANTBOTHER
 
         # expected: both tensors to be values per class so: B x C
-        out_vaes_regul = torch.stack(out_vaes_regul).permute([-1, 0])
-        out_vaes_reconst = torch.stack(out_vaes_reconst).permute([-1, 0])
-        out_elbo = - out_vaes_regul + out_vaes_reconst  # (- negative elbo)
-
+        # out_vaes_regul = torch.stack(out_vaes_regul).permute([-1, 0])
+        # out_vaes_reconst = torch.stack(out_vaes_reconst).permute([-1, 0])
+        out_vaes_regul = torch.stack(out_vaes_regul)
+        out_vaes_reconst = torch.stack(out_vaes_reconst)
+        out_elbo = - (out_vaes_regul + out_vaes_reconst)  # (- negative elbo)
+        out_elbo = - out_vaes_regul # TODO
+        print(step, out_elbo.tolist(), targets.item())
         if self.combination_method is 'joint':
             combined_score = self.joint_probability(out_base_class_scores,
                                                     out_vaes_regul,
@@ -94,12 +99,13 @@ class CombinedClassifier(GeneralModel):
     def joint_probability(self, pxy, regul, recon):
 
         elbo = regul+recon
+        elbo = regul  # TODO NEW
         approach_px = torch.exp(-elbo)
 
-        print('Regularization', regul)
-        print('Reconstruction', recon)
-        print('ELBO', elbo)
-        print('exp elbo', approach_px)
+        # print('Regularization', regul)
+        # print('Reconstruction', recon)
+        # print('ELBO', elbo/2)
+        # print('exp elbo', torch.exp(-elbo/2)) #approach_px)
         # print(approach_px)
         # print(pxy)
         # print(pxy*approach_px)

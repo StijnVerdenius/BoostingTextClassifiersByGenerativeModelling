@@ -1,0 +1,31 @@
+--classifier CombinedClassifier
+--dataset_class LyricsDataset
+--num_classes 5
+--embedding_size 256
+--test-mode
+--learning_rate 0.001
+--hidden_dim 64
+--batch_size 1
+--combined_classification
+--classifier_dir konstantin
+
+--generator SentenceVAE
+
+--vaes_dir
+tod1\country,tod1\hip-hop,tod1\metal,tod1\pop,tod1\rock
+
+--classifier_name
+2019-09-23-acc-64
+
+--vaes_names
+model_best,model_best,model_best,model_best,model_best
+
+--hidden_dim_vae
+64
+--analysis
+
+--loss VAELoss
+
+
+
+--dataset_class_sentencevae LyricsRawDataset
