@@ -87,7 +87,7 @@ class CheckDataLoader(Dataset):
 
     def __init__(self, file="", set_name="train", **kwargs):
         super(CheckDataLoader, self).__init__()
-        df = pd.read_csv('local_data/data/spam_dataset.csv')
+        df = pd.read_csv('/Users/bellanicholson/Desktop/DL4NLP/code/DL4NLP/local_data/data/spam_dataset.csv')
         data = np.array(df.Message)
         labels = np.array(df.Category)
 
@@ -109,6 +109,22 @@ class CheckDataLoader(Dataset):
         self.encoded_data = torch.from_numpy(encoded_data.astype(float))  # V x Seq x B
         self.labels = torch.from_numpy(labels)
         self.encoded_data = self.encoded_data.permute([-1, 1, 0])  # B x Seq x Vocab
+
+        vocab_rev = {value: key for key, value in self.vocabulary.items()}
+        self.onehot_to_text(vocab_rev, 0)
+
+
+    def onehot_to_text(self, vocab_rev, ind):
+        encoded, label = self.__getitem__(ind)
+        string = ""
+        # # try to decode text
+        for char in encoded:
+            char_ind = np.where(char == 1.0)[0][0]
+            string += (vocab_rev[char_ind])
+
+        print('Decoded one-hot', string)
+        return string
+
 
     def __len__(self):
         return self.encoded_data.shape[0]
