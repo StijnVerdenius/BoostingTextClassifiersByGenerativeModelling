@@ -4,10 +4,10 @@ from models.GeneralModel import GeneralModel
 
 # this is a dummy, please make your own versions that inherets from general model and implements forward
 
-class DummyLoss(GeneralModel):
+class Cross_ELBO(GeneralModel):
 
     def __init__(self, device="cpu", **kwargs):
-        super(DummyLoss, self).__init__(0, device, **kwargs)
+        super(Cross_ELBO, self).__init__(0, device, **kwargs)
         self.CE = CrossEntropyLoss()
         self.MSE_ELBO = MSE_ELBO()
 
