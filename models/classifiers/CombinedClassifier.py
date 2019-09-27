@@ -14,7 +14,7 @@ class CombinedClassifier(GeneralModel):
                  lstm_file, vae_files,
                  generator_loss,
                  generator_class,
-                 arguments,
+                 dataset_options,
                  classifier_name, vaes_names,
                  # below: probably things we wont change
                  classifier_class='LSTMClassifier',
@@ -22,6 +22,7 @@ class CombinedClassifier(GeneralModel):
                  only_eval=True,
                  n_channels_in=(0), device="cpu", **kwargs):
         super(CombinedClassifier, self).__init__(n_channels_in, device, **kwargs)
+
 
         self.base_classifier = find_right_model(CLASS_DIR,
                                                 classifier_class,
@@ -42,6 +43,7 @@ class CombinedClassifier(GeneralModel):
                                                hidden_dim=hidden_dim_vae,
                                                z_dim=z_dim,
                                                only_eval=only_eval,
+                                               dataset_options=dataset_options,
                                                ).to(device)
 
         if only_eval:
@@ -65,11 +67,12 @@ class CombinedClassifier(GeneralModel):
             self.W_classifier.requires_grad = True
             self.W_vaes.requires_grad = True
 
-    def forward(self, inp, lengths):
+    def forward(self, inp, lengths, inp_sentence):
+        inp2, _ = inp_sentence
         out_base = self.base_classifier.forward(inp.detach(), lengths.detach())  # need to put through softmax
-        out_base_class_scores = nn.functional.softmax(out_base[0], dim=-1).detach()
+        out_base_class_scores = nn.functional.softmax(*out_base, dim=-1).detach()
 
-        out_vaes_regul, out_vaes_reconst = self.vae_classifier.forward(inp)
+        out_vaes_regul, out_vaes_reconst = self.vae_classifier.forward(inp2)
 
         # expected: both tensors to be values per class so: B x C
         out_vaes_regul = torch.stack(out_vaes_regul).permute([-1, 0])

@@ -9,6 +9,7 @@ class VAEClassifier(GeneralModel):
                  hidden_dim, z_dim,
                  vae_files, vaes_names,
                  generator_loss, generator_class,
+                 dataset_options,
                  n_channels_in=(0),
                  device="cpu",
                  only_eval=True,
@@ -20,21 +21,17 @@ class VAEClassifier(GeneralModel):
         vaes_names = vaes_names.split(',')
         self.device = device
 
-        self.loss_func = find_right_model(LOSS_DIR, generator_loss).to(device)
+        self.loss_func = find_right_model(LOSS_DIR, generator_loss, dataset_options=dataset_options).to(device)
         self.models = [None]*len(vae_files)
         for v, vae_file in enumerate(vae_files):
             vae_file = os.path.join(GITIGNORED_DIR, RESULTS_DIR, vae_file)
 
-            index = Genre.Pop if 'Pop' in vae_file else (
-                Genre.HipHop if 'Hip-Hop' in vae_file else (
-                    Genre.Rock if 'Rock' in vae_file else (
-                        Genre.Metal if 'Metal' in vae_file else (
-                            Genre.Country if 'Country' in vae_file else(
+            index = Genre.Pop.value if 'pop' in vae_file.lower() else (
+                Genre.HipHop.value if 'hip-hop' in vae_file.lower() else (
+                    Genre.Rock.value if 'rock' in vae_file.lower() else (
+                        Genre.Metal.value if 'metal' in vae_file.lower() else (
+                            Genre.Country.value if 'country' in vae_file.lower() else(
                                 )))))
-
-            # if 'rock' in vae_file:
-            #     z_dim = 32
-            print(Genre.name(index))
             self.models[index] = find_right_model(GEN_DIR,
                                                   generator_class,
                                                   hidden_dim=hidden_dim,
@@ -42,15 +39,14 @@ class VAEClassifier(GeneralModel):
                                                   n_channels_in=n_channels_in,
                                                   input_dim=n_channels_in,
                                                   device=device,
+                                                  embedding_size=n_channels_in,
+                                                  latent_size=z_dim,
+                                                  dataset_options=dataset_options
                                                   ).to(device)
-
-            # if 'rock' in vae_file:
-            #     z_dim = 16
 
             if only_eval:
                 self.models[index].eval()
             datamanager = DataManager(vae_file)
-            # print(vae_file)
             loaded = datamanager.load_python_obj(os.path.join('models', vaes_names[v]))
             for state_dict in loaded.values():
                 state_dict = state_dict

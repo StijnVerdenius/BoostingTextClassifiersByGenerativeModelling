@@ -6,7 +6,6 @@ from utils.constants import *
 from typing import List, Tuple
 from models.enums.Genre import Genre
 
-
 class Tester:
     # input: both network models
     # return average loss, acc; etc.
@@ -41,9 +40,15 @@ class Tester:
                 'classifier_scores': [], 'vaes_scores': []},
                    'accuracies_per_batch': [],
                    'true_targets': []}
-            for i, (batch, targets, lengths) in enumerate(self.data_loader_test):
 
-                accuracy_batch = self._batch_iteration(batch, targets, lengths, log)
+            batch2, targets2 = None, None
+            for i, items in enumerate(self.data_loader_test):
+                if 'Wrapper' in type(self.data_loader_test).__name__:
+                    (batch, targets, lengths), (batch2, targets2) = items
+                else:
+                    (batch, targets, lengths) = items
+                print(items)
+                accuracy_batch = self._batch_iteration(batch, targets, lengths, log, (batch2, targets2))
 
                 log['accuracies_per_batch'].append(accuracy_batch)
                 log['true_targets'].append(targets)
@@ -70,16 +75,21 @@ class Tester:
                          batch: torch.Tensor,
                          targets: torch.Tensor,
                          lengths: torch.Tensor,
-                         log):
+                         log,
+                         sentencebatch):
         """
         runs forward pass on batch and backward pass if in train_mode
         """
-
+        batch2, targets2 = sentencebatch
         batch = batch.to(self.device).detach()
         targets = targets.to(self.device).detach()
         lengths = lengths.to(self.device).detach()
 
-        output = self.model.forward(batch, lengths)
+        if batch2:
+            batch2 = batch2.to(self.device).detach()
+            targets2 = targets2.to(self.device).detach()
+
+        output = self.model.forward(batch, lengths, (batch2, targets2))
 
         final_scores_per_class = output
         if 'Combined' in type(self.model).__name__:

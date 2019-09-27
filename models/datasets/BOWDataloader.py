@@ -7,10 +7,10 @@ from collections import Counter
 import nltk
 nltk.download('punkt')
 
-class CheckDataLoader(Dataset):
+class BOWDataloader(Dataset):
 
     def __init__(self, file="", set_name="train", **kwargs):
-        super(CheckDataLoader, self).__init__()
+        super(BOWDataloader, self).__init__()
 
         df = pd.read_csv('/Users/bellanicholson/Desktop/DL4NLP/code/DL4NLP/local_data/data/spam_dataset.csv')
         # todo: remove [:80], just done for testing purposes
@@ -125,9 +125,9 @@ class CheckDataLoader(Dataset):
         return self.encoded_data[item, :], self.labels[item].long()
         # return self.encoded_data[item, :] / self.norm_vec, self.labels[item].long()
 
-# Dummy test
-x = DataLoader(CheckDataLoader())
-for i, tens in enumerate(x):
-    print(i)
+# # Dummy test
+# x = DataLoader(CheckDataLoader())
+# for i, tens in enumerate(x):
+#     print(i)
 
 

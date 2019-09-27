@@ -61,6 +61,7 @@ class LyricsRawDataset(BaseDataset):
 
         return (np.asarray(self.data[idx]['input'], dtype=np.int64), np.asarray(self.data[idx]['target'], dtype=np.int64), self.data[idx]['length'])
 
+
     @property
     def vocab_size(self):
         return len(self.w2i)

@@ -10,7 +10,7 @@ from torch.utils.data import DataLoader
 import torch.nn.utils.rnn as rnn_utils
 
 from models.GeneralModel import GeneralModel
-from models.datasets.CheckDataLoader import CheckDataLoader
+# from models.datasets.CheckDataLoader import CheckDataLoader
 from models.datasets.LyricsRawDataset import LyricsRawDataset
 from models.losses.ELBO import ELBO
 from models.enums.Genre import Genre

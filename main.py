@@ -38,13 +38,17 @@ def main(arguments: argparse.Namespace):
         torch.backends.cudnn.benchmark = False
         torch.cuda.manual_seed_all(args.seed)
 
-    data_loader_train : DataLoader = None
+    data_loader_train: DataLoader = None
     data_loader_validation: DataLoader = None
     data_loader_test: DataLoader = None
 
     if arguments.test_mode:
         # we are in test mode
         data_loader_test = load_dataloader(arguments, TEST_SET)
+        # data_loader_sentenceVAE = None
+        # if arguments.dataset_class_sentencevae:
+        #     arguments.dataset_class = arguments.dataset_class_sentencevae
+        #     data_loader_sentenceVAE = load_dataloader(arguments, TEST_SET)
     else:
         # load needed data
         data_loader_train = load_dataloader(arguments, TRAIN_SET)
@@ -70,7 +74,7 @@ def main(arguments: argparse.Namespace):
         classifier_name=arguments.classifier_name,
         hidden_dim_vae=arguments.hidden_dim_vae,
         vaes_names=arguments.vaes_names,
-        dataset_options=data_loader_train.dataset,
+        dataset_options=data_loader_test.dataset if data_loader_train is None else data_loader_train.dataset,
         combination_method=arguments.combination,
         generator_loss=arguments.loss,
         generator_class=arguments.generator,
@@ -116,7 +120,8 @@ def load_dataloader(arguments: argparse.Namespace,
         folder=arguments.data_folder,
         set_name=set_name,
         genre=Genre.from_str(arguments.genre),
-        normalize=arguments.normalize_data)
+        normalize=arguments.normalize_data,
+        arguments=arguments)
 
     loader = DataLoader(
         dataset,

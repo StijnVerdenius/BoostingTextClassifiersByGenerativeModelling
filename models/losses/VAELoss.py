@@ -10,6 +10,7 @@ class VAELoss(GeneralModel):
         super(VAELoss, self).__init__(0, device, **kwargs)
         self.losses = {"recon": 0, "reg": 0}
         self.evaluations = 0
+
         self.NLL = torch.nn.NLLLoss(size_average=False, ignore_index=dataset_options.pad_idx)
 
     def forward(self, target, length, step, k, x0, batch_size, logp, mean, logv, z):

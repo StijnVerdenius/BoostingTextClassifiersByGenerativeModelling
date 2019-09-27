@@ -10,7 +10,7 @@ from torch.nn.utils.rnn import pack_padded_sequence, pad_packed_sequence
 from torch.utils.data import DataLoader
 
 from models.GeneralModel import GeneralModel
-from models.datasets.CheckDataLoader import CheckDataLoader
+# from models.datasets.CheckDataLoader import CheckDataLoader
 from models.losses.ELBO import ELBO
 from utils.data_manager import DataManager
 from utils.system_utils import ensure_current_directory
