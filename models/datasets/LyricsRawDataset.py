@@ -33,7 +33,7 @@ class LyricsRawDataset(BaseDataset):
         song_entries = self.setup(data_manager, set_name)
 
         self.data_file = f'lyrics.{set_name}.{genre}.json'
-        self.vocab_file = f'lyrics.vocab.{genre}.json'
+        self.vocab_file = f'lyrics.vocab.json'
 
         if create_data:
             print("Creating new %s ptb data."%set_name.upper())
@@ -51,7 +51,7 @@ class LyricsRawDataset(BaseDataset):
 
     def setup(self, data_manager: DataManager, set_name: str) -> List[Song]:
         x: List[Song] = data_manager.load_python_obj(f'song_lyrics.{set_name}')
-        return [song for song in x if self.genre == None or self.genre == song.genre]
+        return x
 
     def __len__(self):
         return len(self.data)
@@ -105,7 +105,7 @@ class LyricsRawDataset(BaseDataset):
 
     def _create_data(self, song_entries):
 
-        if self.split == TRAIN_SET:
+        if self.split == TRAIN_SET and not os.path.exists(os.path.join(self.data_dir, self.vocab_file)):
             self._create_vocab(song_entries)
         else:
             self._load_vocab()
@@ -114,6 +114,8 @@ class LyricsRawDataset(BaseDataset):
         # with open(self.raw_data_path, 'r', encoding='utf-8') as file:
 
         for song_entry in song_entries:
+            if song_entry.genre != self.genre:
+                continue
 
             words = word_tokenize(song_entry.lyrics)
 
