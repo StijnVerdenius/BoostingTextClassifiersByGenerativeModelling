@@ -13,7 +13,7 @@ class VAELoss(GeneralModel):
 
         self.NLL = torch.nn.NLLLoss(size_average=False, ignore_index=dataset_options.pad_idx)
 
-    def forward(self, target, length, step, k, x0, batch_size, logp, mean, logv, z):
+    def forward(self, target, length, step, k, x0, batch_size, logp, mean, logv, z, _):
         # cut-off unnecessary padding from target, and flatten
         target = target[:, :torch.max(length).item()].contiguous().view(-1)
         logp = logp.view(-1, logp.size(2))

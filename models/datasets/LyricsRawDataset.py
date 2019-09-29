@@ -88,7 +88,6 @@ class LyricsRawDataset(BaseDataset):
     def get_i2w(self):
         return self.i2w
 
-
     def _load_data(self, vocab=True):
 
         with open(os.path.join(self.data_dir, self.data_file), 'r', encoding='utf-8') as file:

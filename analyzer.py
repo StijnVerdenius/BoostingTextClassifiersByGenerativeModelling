@@ -21,6 +21,10 @@ class Analyzer:
         self.num_classes = num_classes
         self.model.eval()
 
+    def soft_voting(self, probs1, probs2):
+        _, predictions = ((probs1 + probs2) / 2).max(dim=-1)
+        return predictions
+
     def analyze_misclassifications(self, test_logs):
 
         combined_scores = torch.stack(test_logs['final_scores']).view(-1, 5)
@@ -32,6 +36,7 @@ class Analyzer:
         _, classifier_predictions = classifier_scores.max(dim=-1)
         _, vaes_predictions = vaes_scores.max(dim=-1)
 
+        # combined_predictions = self.soft_voting(vaes_scores, classifier_scores)
         # print('targets', targets)
         # print('combine', combined_predictions)
         # print('classif', classifier_predictions)
@@ -40,6 +45,7 @@ class Analyzer:
         classifier_compare = classifier_predictions.eq(targets)
         combined_compare = combined_predictions.eq(targets)
         vaes_compare = vaes_predictions.eq(targets)
+
 
         # print('Elbo values', vaes_scores)
 

@@ -72,44 +72,33 @@ class CombinedClassifier(GeneralModel):
         out_base = self.base_classifier.forward(inp.detach(), lengths.detach())  # need to put through softmax
         out_base_class_scores = nn.functional.softmax(*out_base, dim=-1).detach()
 
-        # out_vaes_regul, out_vaes_reconst = self.vae_classifier.forward(inp2, lengths2, step, targets2)
-        loss = self.vae_classifier.forward(inp2, lengths2, step, targets2)
-        out_vaes_regul, out_vaes_reconst = loss, loss #NEWLOSSCANTBOTHER
+        LOSS = 'TOD'
 
-        # expected: both tensors to be values per class so: B x C
-        # out_vaes_regul = torch.stack(out_vaes_regul).permute([-1, 0])
-        # out_vaes_reconst = torch.stack(out_vaes_reconst).permute([-1, 0])
-        out_vaes_regul = torch.stack(out_vaes_regul)
-        out_vaes_reconst = torch.stack(out_vaes_reconst)
-        out_elbo = - (out_vaes_regul + out_vaes_reconst)  # (- negative elbo)
-        out_elbo = - out_vaes_regul # TODO
-        print(step, out_elbo.tolist(), targets.item())
-        if self.combination_method is 'joint':
-            combined_score = self.joint_probability(out_base_class_scores,
-                                                    out_vaes_regul,
-                                                    out_vaes_reconst)
-        elif self.combination_method is 'learn':
-            combined_score = self.weighted_sum(out_base_class_scores, out_elbo)
+        if LOSS == 'STIJN':
+            out_vaes_regul, out_vaes_reconst, _ = self.vae_classifier.forward(inp2, lengths2, step, targets2)
+            out_vaes_regul = torch.stack(out_vaes_regul).permute([-1, 0])
+            out_vaes_reconst = torch.stack(out_vaes_reconst).permute([-1, 0])
+            vae_loss = - (out_vaes_regul + out_vaes_reconst)
 
-        return combined_score, (out_base_class_scores, out_elbo)
+        elif LOSS == 'TOD':
+            _, _, vae_loss = self.vae_classifier.forward(inp2, lengths2, step, targets2)
+            vae_loss = - torch.stack(vae_loss)
+            vae_loss = nn.Softmax(dim=-1)(vae_loss)
+
+            if self.combination_method is 'joint':
+                combined_score = self.joint_probability(out_base_class_scores, vae_loss)
+            elif self.combination_method is 'learn':
+                combined_score = self.weighted_sum(out_base_class_scores, vae_loss)
+
+        # print(step, vae_loss.tolist(), targets.tolist(), combined_score.tolist())
+
+        return combined_score, (out_base_class_scores, vae_loss)
 
         # todo | keep in mind that scores should be as if they're probabilities, meaning for
         # todo | classification we take argmax and classify directly
 
-    def joint_probability(self, pxy, regul, recon):
-
-        elbo = regul+recon
-        elbo = regul  # TODO NEW
-        approach_px = torch.exp(-elbo)
-
-        # print('Regularization', regul)
-        # print('Reconstruction', recon)
-        # print('ELBO', elbo/2)
-        # print('exp elbo', torch.exp(-elbo/2)) #approach_px)
-        # print(approach_px)
-        # print(pxy)
-        # print(pxy*approach_px)
-
+    def joint_probability(self, pxy, px):
+        approach_px = torch.exp(px)
         return pxy*approach_px
 
     def weighted_sum(self, classifier_score, vaes_score):  # TODO: give elbo or recons or (regul??) ??
