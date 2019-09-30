@@ -88,6 +88,11 @@ class Tester:
         """
         runs forward pass on batch and backward pass if in train_mode
         """
+
+        if (step % 100) == 0:
+            print(step)
+
+
         batch2, targets2, lengths2 = sentencebatch
         batch = batch.to(self.device).detach()
         targets = targets.to(self.device).detach()
