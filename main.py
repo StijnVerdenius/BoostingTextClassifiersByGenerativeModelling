@@ -97,9 +97,9 @@ def main(arguments: argparse.Namespace):
     if arguments.test_mode:
         tester = Tester(model, data_loader_test, device=device, data_loader_sentence=data_loader_sentenceVAE)
         test_logs = tester.test()
-
+        # test_logs = None
         if arguments.analysis:
-            analyzer = Analyzer(model, tester, device=device, num_classes=arguments.num_classes)
+            analyzer = Analyzer(model, device=device, num_classes=arguments.num_classes)
             analyzer.analyze_misclassifications(test_logs)
 
 
