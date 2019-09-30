@@ -32,11 +32,14 @@ class VAELoss(GeneralModel):
     def get_losses(self):
         return {key: value / 1 for key, value in self.losses.items()}
 
-    def kl_anneal_function(self, anneal_function, step, k, x0):
+    def kl_anneal_function(self, anneal_function, step, k, x0, test_mode=True):
+        if test_mode:
+            return 1
         if anneal_function == 'logistic':
             return float(1/(1+np.exp(-k*(step-x0))))
         elif anneal_function == 'linear':
             return min(1, step/x0)
+
 
     def reset(self):
         self.losses["recon"] = 0

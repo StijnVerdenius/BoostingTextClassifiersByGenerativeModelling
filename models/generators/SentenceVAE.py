@@ -78,7 +78,6 @@ class SentenceVAE(GeneralModel):
         self.outputs2vocab = nn.Linear(hidden_dim * (2 if bidirectional else 1), dataset_options.vocab_size)
 
     def forward(self, input_sequence, lengths, step, **kwargs):
-
         batch_size = input_sequence.size(0)
         sorted_lengths, sorted_idx = torch.sort(lengths, descending=True)
         input_sequence = input_sequence[sorted_idx]
@@ -127,6 +126,7 @@ class SentenceVAE(GeneralModel):
         packed_input = rnn_utils.pack_padded_sequence(input_embedding, sorted_lengths.data.tolist(), batch_first=True)
 
         # decoder forward pass
+
         outputs, _ = self.decoder_rnn(packed_input, hidden)
 
         # process outputs

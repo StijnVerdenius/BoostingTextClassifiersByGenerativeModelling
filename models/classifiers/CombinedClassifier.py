@@ -81,16 +81,18 @@ class CombinedClassifier(GeneralModel):
             vae_loss = - (out_vaes_regul + out_vaes_reconst)
 
         elif LOSS == 'TOD':
+            if step > 900:
+                print('length combin', lengths2)
             _, _, vae_loss = self.vae_classifier.forward(inp2, lengths2, step, targets2)
             vae_loss = - torch.stack(vae_loss)
-            vae_loss = nn.Softmax(dim=-1)(vae_loss)
+            # vae_loss = nn.Softmax(dim=-1)(vae_loss)
 
             if self.combination_method is 'joint':
                 combined_score = self.joint_probability(out_base_class_scores, vae_loss)
             elif self.combination_method is 'learn':
                 combined_score = self.weighted_sum(out_base_class_scores, vae_loss)
 
-        # print(step, vae_loss.tolist(), targets.tolist(), combined_score.tolist())
+        print(step, vae_loss.tolist(), targets.tolist(), combined_score.tolist())
 
         return combined_score, (out_base_class_scores, vae_loss)
 
