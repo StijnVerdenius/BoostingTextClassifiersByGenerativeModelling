@@ -20,8 +20,7 @@ tod1\country,tod1\hip-hop,tod1\metal,tod1\pop,tod1\rock
 --vaes_names
 model_best,model_best,model_best,model_best,model_best
 
---hidden_dim_vae
-64
+--hidden_dim_vae 64
 --analysis
 
 --loss VAELoss
