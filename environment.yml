@@ -13,4 +13,5 @@ dependencies:
   - h5py=2.10.*
   - pandas=0.25.*
   - tensorflow=1.14.*
+  - nltk=3.4.*
 #  TODO: add what you need!!
