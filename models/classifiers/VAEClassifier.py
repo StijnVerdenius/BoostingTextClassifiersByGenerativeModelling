@@ -13,6 +13,7 @@ class VAEClassifier(GeneralModel):
                  n_channels_in=(0),
                  device="cpu",
                  only_eval=True,
+                 test_mode=False,
                  **kwargs):
 
         super(VAEClassifier, self).__init__(n_channels_in, device, **kwargs)
@@ -21,7 +22,7 @@ class VAEClassifier(GeneralModel):
         vaes_names = vaes_names.split(',')
         self.device = device
 
-        self.loss_func = find_right_model(LOSS_DIR, generator_loss, dataset_options=dataset_options).to(device)
+        self.loss_func = find_right_model(LOSS_DIR, generator_loss, dataset_options=dataset_options, test_mode=test_mode).to(device)
 
         self.MSEELBOOOOOO = find_right_model(LOSS_DIR, 'MSE_ELBO', dataset_options=dataset_options).to(device)
 
