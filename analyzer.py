@@ -83,12 +83,6 @@ class Analyzer:
         This function prints and plots the confusion matrix.
         Normalization can be applied by setting `normalize=True`.
         """
-        if not title:
-            if normalize:
-                title = 'Normalized confusion matrix'
-            else:
-                title = 'Confusion matrix, without normalization'
-
         # Compute confusion matrix
         cm = metrics.confusion_matrix(targets, predictions)
         # Only use the labels that appear in the data
@@ -96,9 +90,6 @@ class Analyzer:
         classes = classes[labels]
         if normalize:
             cm = cm.astype('float') / cm.sum(axis=1)[:, np.newaxis]
-            print("Normalized confusion matrix")
-        else:
-            print('Confusion matrix, without normalization')
 
         ax = None
         if plot_matrix:
