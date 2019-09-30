@@ -6,11 +6,12 @@ from models.GeneralModel import GeneralModel
 
 class VAELoss(GeneralModel):
 
-    def __init__(self, dataset_options, device="cpu", **kwargs):
+    def __init__(self, dataset_options, device="cpu", test_mode=False,
+    **kwargs):
         super(VAELoss, self).__init__(0, device, **kwargs)
         self.losses = {"recon": 0, "reg": 0}
         self.evaluations = 0
-
+        self.test_mode = test_mode
         self.NLL = torch.nn.NLLLoss(size_average=False, ignore_index=dataset_options.pad_idx)
 
     def forward(self, target, length, step, k, x0, batch_size, logp, mean, logv, z, _):
@@ -33,8 +34,8 @@ class VAELoss(GeneralModel):
         return {key: value / 1 for key, value in self.losses.items()}
 
     def kl_anneal_function(self, anneal_function, step, k, x0, test_mode=True):
-        if test_mode:
-            return 1
+        # if self.test_mode:
+        #     return 1
         if anneal_function == 'logistic':
             return float(1/(1+np.exp(-k*(step-x0))))
         elif anneal_function == 'linear':

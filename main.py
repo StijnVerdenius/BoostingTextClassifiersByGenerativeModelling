@@ -84,7 +84,8 @@ def main(arguments: argparse.Namespace):
         dataset_sentenceVAE=arguments.dataset_class_sentencevae,
         arguments=arguments,
         z_dim=arguments.z_dim,
-        n_channels_in=arguments.embedding_size).to(device)
+        n_channels_in=arguments.embedding_size,
+        test_mode=arguments.test_mode).to(device)
 
     # if we are in train mode..
     if arguments.test_mode:
