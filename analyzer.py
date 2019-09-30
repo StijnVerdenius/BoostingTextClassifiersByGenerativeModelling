@@ -6,6 +6,10 @@ from utils.constants import *
 import pickle
 from sklearn import metrics
 from typing import List
+from scipy.stats import ttest_ind
+from statsmodels.stats.contingency_tables import mcnemar
+from mlxtend.evaluate import permutation_test
+import numpy as np
 
 class Analyzer:
     # input: both network models
@@ -42,6 +46,40 @@ class Analyzer:
 
         return f1, precision, recall
 
+    def create_contingency_table(self, targets, predictions1, predictions2):
+        assert len(targets) == len(predictions1)
+        assert len(targets) == len(predictions2)
+
+        contingency_table = np.zeros((2, 2))
+
+        targets_length = len(targets)
+        contingency_table[0, 0] = sum([targets[i] == predictions1[i] and targets[i] == predictions2[i] for i in range(targets_length)]) # both predictions are correct
+        contingency_table[0, 1] = sum([targets[i] == predictions1[i] and targets[i] != predictions2[i] for i in range(targets_length)]) # predictions1 is correct and predictions2 is wrong
+        contingency_table[1, 0] = sum([targets[i] != predictions1[i] and targets[i] == predictions2[i] for i in range(targets_length)]) # predictions1 is wrong and predictions2 is correct
+        contingency_table[1, 1] = sum([targets[i] != predictions1[i] and targets[i] != predictions2[i] for i in range(targets_length)]) # both predictions are wrong
+
+        return contingency_table
+
+    def calculate_ttest(self, predictions1, predictions2):
+        _, p_value = ttest_ind(predictions1, predictions2)
+        return p_value
+
+    def calculate_mcnemars_test(self, targets, predictions1, predictions2):
+        contingency_table = self.create_contingency_table(
+            targets,
+            predictions1,
+            predictions2)
+        
+        result = mcnemar(contingency_table, exact=True)
+        return result.pvalue
+
+    def calculate_permutation_test(self, predictions1, predictions2):
+        p_value = permutation_test(predictions1, predictions2,
+                            method='approximate',
+                            num_rounds=10000,
+                            seed=0)
+                        
+        return p_value
 
     def analyze_misclassifications(self, test_logs):
         if test_logs is not None:
@@ -92,6 +130,19 @@ class Analyzer:
         classifier_f1, classifier_precision, classifier_recall = self.calculate_metrics(targets, classifier_predictions)
 
         print(f'Combined F1: {combined_f1}\nClassifier F1: {classifier_f1}')
+
+        mcnemars_p_value = self.calculate_mcnemars_test(targets, classifier_predictions, combined_predictions)
+        ttest_p_value = self.calculate_ttest(classifier_predictions, combined_predictions)
+        permutation_p_value = self.calculate_permutation_test(classifier_predictions, combined_predictions)
+
+        alpha_value = 0.05
+        mcnemars_significant = mcnemars_p_value < alpha_value
+        ttest_significant = ttest_p_value < alpha_value
+        permutation_significant = permutation_p_value < alpha_value
+
+        print(f'Mcnemars: {mcnemars_significant} | p-value: {mcnemars_p_value}')
+        print(f'T-Test: {ttest_significant} | p-value: {ttest_p_value}')
+        print(f'Permutation: {permutation_significant} | p-value: {permutation_p_value}')
 
         # check if combination correctly classified these? check how many
         # print(combined_compare[classifier_misfire_indices])
