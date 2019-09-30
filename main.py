@@ -46,8 +46,10 @@ def main(arguments: argparse.Namespace):
 
     if arguments.joint_training:
         data_loader_train_ = load_dataloader(arguments, TRAIN_SET)
+        data_loader_validation_ = load_dataloader(arguments, VALIDATION_SET)
         arguments.dataset_class = arguments.dataset_class_sentencevae
         data_loader_sentenceVAE = load_dataloader(arguments, TRAIN_SET)
+        data_loader_sentenceVAE_validation = load_dataloader(arguments, VALIDATION_SET)
 
     elif arguments.test_mode:
         # we are in test mode
@@ -113,12 +115,14 @@ def main(arguments: argparse.Namespace):
             loss_function = find_right_model(LOSS_DIR, arguments.loss, dataset_options=data_loader_train_.dataset,
                                              device=device).to(device)
             JointTraining(data_loader_train_,
+                          data_loader_validation_,
                           model,
                           optimizer,
                           loss_function,
                           arguments,
                           args.patience,
                           data_loader_sentenceVAE,
+                          data_loader_sentenceVAE_validation,
                           device=device
                           ).train()
 
@@ -216,7 +220,7 @@ def parse() -> argparse.Namespace:
     parser.add_argument('--vaes_dir', default="", type=str, help='vaes state-dict dir. Give names separated by commas')
     parser.add_argument('--vaes_names', default="", type=str, help='vaes model names under models(sep by comma)')
     parser.add_argument('--hidden_dim_vae', default=0, type=int, help='needed only when vae and lstm have different')
-    parser.add_argument('--combination', default="joint", type=str, help='joint/learn')
+    parser.add_argument('--combination', default="joint", type=str, help='joint/learn_sum/learn_classifier')
 
     # analysis
     parser.add_argument('--analysis', action='store_true', help='do analysis')
@@ -232,4 +236,5 @@ if __name__ == '__main__':
     # print("CUDA avalability:", torch.cuda.is_available(), "CUDA version:", torch.version.cuda)
     ensure_current_directory()
     args = parse()
+    print(args)
     main(args)
