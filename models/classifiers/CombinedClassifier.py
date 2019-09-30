@@ -62,9 +62,9 @@ class CombinedClassifier(GeneralModel):
         # TODO I guess this should be saved n loaded as well?
         self.combination_method = combination_method
 
-        if self.combination_method is 'learn':
-            self.W_classifier = nn.Parameter(torch.ones((num_classes,)*0.5))
-            self.W_vaes = nn.Parameter(torch.ones((num_classes,) * 0.5))
+        if self.combination_method == 'learn':
+            self.W_classifier = nn.Parameter(torch.ones((num_classes,))*0.5)
+            self.W_vaes = nn.Parameter(torch.ones((num_classes,) )* 0.5)
             self.W_classifier.requires_grad = True
             self.W_vaes.requires_grad = True
 
@@ -92,7 +92,7 @@ class CombinedClassifier(GeneralModel):
             elif self.combination_method is 'learn':
                 combined_score = self.weighted_sum(out_base_class_scores, vae_score)
 
-        print(step, vae_score.tolist(), vae_likelihood.tolist(), targets.item(), combined_score.tolist())
+        # print(step, vae_score.tolist(), vae_likelihood.tolist(), targets.item(), combined_score.tolist())
 
         return combined_score, (out_base_class_scores, vae_likelihood)
 
@@ -104,4 +104,4 @@ class CombinedClassifier(GeneralModel):
         return pxy*approach_px
 
     def weighted_sum(self, classifier_score, vaes_score):  # TODO: give elbo or recons or (regul??) ??
-        return self.W_classifier * classifier_score + self.W_vaes * vaes_score
+        return self.W_classifier * classifier_score.detach() + self.W_vaes * vaes_score.detach()

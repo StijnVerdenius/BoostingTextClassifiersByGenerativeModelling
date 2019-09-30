@@ -53,12 +53,6 @@ class Trainer:
         self._start_time = time.time()
 
     def _validate_self(self):
-        # assert_type(self.arguments, argparse.Namespace)
-        # assert_type(self.loss_function, GeneralModel)
-        # assert_type(self.model, GeneralModel)
-        # assert_type(self.data_loader_validation, DataLoader)
-        # assert_type(self.data_loader_train, DataLoader)
-        # assert_type(self.optimizer, Optimizer)
         pass
 
     def train(self) -> bool:

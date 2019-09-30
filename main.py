@@ -1,5 +1,7 @@
 import torch
 
+from joint_training import JointTraining
+
 try:
     torch.cuda.current_device()
 except:
@@ -42,7 +44,12 @@ def main(arguments: argparse.Namespace):
     data_loader_validation: DataLoader = None
     data_loader_test: DataLoader = None
 
-    if arguments.test_mode:
+    if arguments.joint_training:
+        data_loader_train_ = load_dataloader(arguments, TRAIN_SET)
+        arguments.dataset_class = arguments.dataset_class_sentencevae
+        data_loader_sentenceVAE = load_dataloader(arguments, TRAIN_SET)
+
+    elif arguments.test_mode:
         # we are in test mode
         data_loader_test = load_dataloader(arguments, TEST_SET)
         data_loader_sentenceVAE = None
@@ -57,15 +64,14 @@ def main(arguments: argparse.Namespace):
         data_loader_train = load_dataloader(arguments, TRAIN_SET)
         data_loader_validation = load_dataloader(arguments, VALIDATION_SET)
 
-
     # get model from models-folder (name of class has to be identical to filename)
     arguments.hidden_dim_vae = arguments.hidden_dim if arguments.hidden_dim_vae == 0 else arguments.hidden_dim_vae
     model = find_right_model(
-        (CLASS_DIR if arguments.train_classifier else 
-        (GEN_DIR if not arguments.combined_classification else CLASS_DIR)),
+        (CLASS_DIR if arguments.train_classifier else
+         (GEN_DIR if not arguments.combined_classification else CLASS_DIR)),
         (arguments.classifier if arguments.train_classifier else
-        (arguments.generator if not arguments.combined_classification
-        else arguments.classifier)),
+         (arguments.generator if not arguments.combined_classification
+          else arguments.classifier)),
         embedding_size=arguments.embedding_size,
         num_classes=arguments.num_classes,
         hidden_dim=arguments.hidden_dim,
@@ -79,7 +85,7 @@ def main(arguments: argparse.Namespace):
         vaes_names=arguments.vaes_names,
         dataset_options=data_loader_sentenceVAE.dataset if data_loader_train is None else data_loader_train.dataset,
         combination_method=arguments.combination,
-        generator_loss=arguments.loss,
+        generator_loss="VAELoss" if arguments.joint_training else arguments.loss,
         generator_class=arguments.generator,
         dataset_sentenceVAE=arguments.dataset_class_sentencevae,
         arguments=arguments,
@@ -96,36 +102,54 @@ def main(arguments: argparse.Namespace):
             analyzer = Analyzer(model, tester, device=device, num_classes=arguments.num_classes)
             analyzer.analyze_misclassifications(test_logs)
 
+
     else:
 
         # get optimizer and loss function
         optimizer = find_right_model(OPTIMS, arguments.optimizer, params=model.parameters(), lr=arguments.learning_rate)
-        loss_function = find_right_model(LOSS_DIR, arguments.loss, dataset_options=data_loader_train.dataset, device=device).to(device)
 
-        # train
-        trainer = Trainer(
-            data_loader_train,
-            data_loader_validation,
-            model,
-            optimizer,
-            loss_function,
-            arguments,
-            args.patience,
-            device)
-        trainer.train()
+
+        if arguments.joint_training:
+            loss_function = find_right_model(LOSS_DIR, arguments.loss, dataset_options=data_loader_train_.dataset,
+                                             device=device).to(device)
+            JointTraining(data_loader_train_,
+                          model,
+                          optimizer,
+                          loss_function,
+                          arguments,
+                          args.patience,
+                          data_loader_sentenceVAE,
+                          device=device
+                          ).train()
+
+        else:
+            loss_function = find_right_model(LOSS_DIR, arguments.loss, dataset_options=data_loader_train.dataset,
+                                             device=device).to(device)
+
+            # train
+            trainer = Trainer(
+                data_loader_train,
+                data_loader_validation,
+                model,
+                optimizer,
+                loss_function,
+                arguments,
+                args.patience,
+                device)
+            trainer.train()
 
 
 def load_dataloader(arguments: argparse.Namespace,
-                  set_name: str) -> DataLoader:
+                    set_name: str) -> DataLoader:
     """ loads specific dataset as a DataLoader """
 
-    dataset : BaseDataset = find_right_model(DATASETS,
-        arguments.dataset_class,
-        folder=arguments.data_folder,
-        set_name=set_name,
-        genre=Genre.from_str(arguments.genre),
-        normalize=arguments.normalize_data,
-        arguments=arguments)
+    dataset: BaseDataset = find_right_model(DATASETS,
+                                            arguments.dataset_class,
+                                            folder=arguments.data_folder,
+                                            set_name=set_name,
+                                            genre=Genre.from_str(arguments.genre),
+                                            normalize=arguments.normalize_data,
+                                            arguments=arguments)
 
     loader = DataLoader(
         dataset,
@@ -166,7 +190,7 @@ def parse() -> argparse.Namespace:
     parser.add_argument('--data_folder', default=os.path.join('local_data', 'data'), type=str, help='data folder path')
     parser.add_argument('--dataset_class', default="LyricsDataset", type=str, help='dataset name')
     parser.add_argument('--dataset_class_sentencevae', default=None, type=str, help='dataset for'
-                                                                                                  ' sentence vae')
+                                                                                    ' sentence vae')
 
     parser.add_argument('--run_name', default="", type=str, help='extra identification for run')
     parser.add_argument('--genre', type=str, default=None,
@@ -175,6 +199,7 @@ def parse() -> argparse.Namespace:
 
     # bool
     parser.add_argument('--test-mode', action='store_true', help='start in train_mode')
+    parser.add_argument('--joint_training', action='store_true', help='start in train_mode')
     parser.add_argument('--train-classifier', action='store_true', help='train a classifier')
     parser.add_argument('--normalize_data', action='store_true', help='normalize data')
     parser.add_argument('--combined_classification', action='store_true', help='combined classification')
