@@ -45,20 +45,20 @@ class Tester:
 
             # for i, items in enumerate(self.data_loader_test):
             for i, items in enumerate(zip(self.data_loader_test, self.data_loader_sentence)):
-                (batch, targets, lengths), (batch2, targets2, lengths2) = items
 
+                (batch, targets, lengths), (batch2, targets2, lengths2) = items
                 # if 'Wrapper' in type(self.data_loader_test.dataset).__name__:
                 #     (batch, targets, lengths), (batch2, targets2, lengths2) = items
                 # else:
                 #     (batch, targets, lengths) = items
 
-                accuracy_batch = self._batch_iteration(batch, targets, lengths, log, (batch2, targets2, lengths), i)
+                accuracy_batch = self._batch_iteration(batch, targets, lengths, log, (batch2, targets2, lengths2), i)
 
                 log['accuracies_per_batch'].append(accuracy_batch)
                 log['true_targets'].append(targets)
 
-                if i==900:
-                    break
+                # if i==900:
+                #     break
                 # break
                 # if i>2:
                 #     break
