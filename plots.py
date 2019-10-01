@@ -1,13 +1,13 @@
 import numpy as np
 import matplotlib.pyplot as plt
 
-def save_ipek_plot(lstm_numbers, vae_numbers, name):
+def save_ipek_plot(lstm_numbers, vae_numbers, combined_numbers, name):
 
-    category_names = ['Correctly Classified', 'Misclassified', 'Correctly Classified', 'Misclassified']
+    category_names = ['Correctly Classified by LSTM', 'Misclassified by LSTM', 'Other model correct, LSTM wrong', 'Both wrong']
     results = {
-        'Classified by LSTM 1': lstm_numbers,
-        'Classified by VAE': vae_numbers,
-
+        'LSTM': lstm_numbers,
+        'VAE': vae_numbers,
+        'Combined': combined_numbers
     }
 
 
@@ -25,7 +25,7 @@ def save_ipek_plot(lstm_numbers, vae_numbers, name):
     data = np.array(list(results.values()))
     data_cum = data.cumsum(axis=1)
     category_colors = plt.get_cmap('RdYlGn')(
-        np.linspace(0.15, 0.85, 2))
+        np.linspace(0.15, 0.85, 4))
     category_colors = np.concatenate((category_colors, category_colors), axis=0)
 
     fig, ax = plt.subplots(figsize=(9.2, 5))
@@ -43,7 +43,7 @@ def save_ipek_plot(lstm_numbers, vae_numbers, name):
         r, g, b, _ = color
         text_color = 'white' if r * g * b < 0.5 else 'darkgrey'
         for y, (x, c) in enumerate(zip(xcenters, widths)):
-            if c  > 0.1:
+            if c  > 0.025:
                 ax.text(x, y, str(c), ha='center', va='center',
                         color=text_color)
         ax.legend(ncol=len(category_names), bbox_to_anchor=(0, 1),
