@@ -203,10 +203,10 @@ class Analyzer:
     def analyze_misclassifications(self, test_logs):
 
         if test_logs is not None:
-            with open('logs1k.pickle', 'wb') as handle:
+            with open('logs_full_on_full.pickle', 'wb') as handle:
                 pickle.dump(test_logs, handle, protocol=pickle.HIGHEST_PROTOCOL)
         else:
-            with open('logs1k.pickle', 'rb') as handle:
+            with open('logs_full_on_full.pickle', 'rb') as handle:
                 test_logs = pickle.load(handle)
 
         analysis_folder = self.ensure_analyzer_filesystem()
