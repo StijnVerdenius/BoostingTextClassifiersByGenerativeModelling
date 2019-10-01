@@ -62,9 +62,27 @@ class CombinedClassifier(GeneralModel):
         # TODO I guess this should be saved n loaded as well?
         self.combination_method = combination_method
 
-        if self.combination_method is 'learn':
-            self.W_classifier = nn.Parameter(torch.ones((num_classes,)*0.5))
-            self.W_vaes = nn.Parameter(torch.ones((num_classes,) * 0.5))
+        if self.combination_method == 'learn_classifier':
+
+            self.layers_lstm = nn.Sequential(
+                nn.Linear(5, 5),
+                nn.ReLU()
+            )
+
+            self.layers_vae = nn.Sequential(
+                nn.Linear(5, 5),
+                nn.ReLU()
+            )
+
+            self.shared = nn.Sequential(
+                nn.Linear(10, 5),
+                nn.Sigmoid()
+            )
+
+        elif self.combination_method == "learn_sum":
+
+            self.W_classifier = nn.Parameter(torch.ones((num_classes,))*0.5)
+            self.W_vaes = nn.Parameter(torch.ones((num_classes,) )* 0.5)
             self.W_classifier.requires_grad = True
             self.W_vaes.requires_grad = True
 
@@ -87,9 +105,9 @@ class CombinedClassifier(GeneralModel):
             vae_likelihood = - vae_loss
             vae_score = nn.Softmax(dim=-1)(vae_likelihood)
 
-            if self.combination_method is 'joint':
+            if 'joint' in self.combination_method:
                 combined_score = self.joint_probability(out_base_class_scores, vae_score)
-            elif self.combination_method is 'learn':
+            elif 'learn' in self.combination_method :
                 combined_score = self.weighted_sum(out_base_class_scores, vae_score)
 
         # print(step, vae_score.tolist(), vae_likelihood.tolist(), targets.item(), combined_score.tolist())
@@ -104,4 +122,9 @@ class CombinedClassifier(GeneralModel):
         return pxy*approach_px
 
     def weighted_sum(self, classifier_score, vaes_score):  # TODO: give elbo or recons or (regul??) ??
-        return self.W_classifier * classifier_score + self.W_vaes * vaes_score
+        if self.combination_method == "learn_classifier":
+            return self.shared.forward(torch.cat((self.layers_lstm.forward(classifier_score.detach().squeeze()),
+                                                  self.layers_vae.forward(vaes_score.detach())), dim=0))
+
+        elif self.combination_method == "learn_sum":
+            return self.W_classifier * classifier_score.detach() + self.W_vaes * vaes_score.detach()
