@@ -6,6 +6,7 @@ from utils.constants import *
 import pickle
 from sklearn import metrics
 from typing import List
+from plots import save_ipek_plot
 
 class Analyzer:
     # input: both network models
@@ -71,7 +72,17 @@ class Analyzer:
         combined_compare = combined_predictions.eq(targets)
         vaes_compare = vaes_predictions.eq(targets)
 
+        print('classcomp')
+        print(classifier_compare)
+        print('comb')
+        print(combined_compare)
+        print('vaes_compare')
+        print(vaes_compare)
+
         classifier_misfire_indices = (classifier_compare == 0).nonzero()  # get misclassifications
+        combined_misfire_indices = (combined_compare == 0).nonzero()  # get misclassifications
+        vaes_misfire_indices = (vaes_compare == 0).nonzero()  # get misclassifications
+
         vae_improved = vaes_compare[classifier_misfire_indices].float().mean()
         print('VAE classified', vae_improved, 'of the LSTM misclassifications correctly.')
 
@@ -98,5 +109,19 @@ class Analyzer:
 
         # print(classifier_misfire_indices)
 
+        len_of_dataset = len(classifier_compare.tolist())
+        # Stuff for ipek plot
+        print(vae_improved)
+        lstm_classifier = classifier_compare.tolist().count(1)/ len_of_dataset
+        lstm_and_vae_correct = classifier_compare.eq(vaes_compare).tolist().count(1)/len(classifier_compare.tolist())
+        print(lstm_and_vae_correct)
 
+
+        lstm_and_vae_wrong = classifier_misfire_indices
+        print(lstm_and_vae_wrong)
+        print('_______-')
+        lstm_right_vae_wrong = 1-lstm_and_vae_correct-vae_improved-lstm_and_vae_wrong
+        print(lstm_right_vae_wrong)
+
+        save_ipek_plot([lstm_classifier, 1 - lstm_classifier, 0, 0], [lstm_and_vae_correct, lstm_right_vae_wrong, vae_improved, lstm_and_vae_wrong], 'Ipek_plot')
 

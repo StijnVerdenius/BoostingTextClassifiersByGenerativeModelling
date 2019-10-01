@@ -18,6 +18,7 @@ def save_dataset_text(song_entries, embeddings_folder_path, filename):
         for song_entry in song_entries:
             embeddings_file.write(f'{song_entry.lyrics}\n')
 
+
 ensure_current_directory()
 main_path = os.path.join('local_data', 'data')
 
@@ -64,7 +65,7 @@ with open(dataset_file_path, 'r', encoding="utf8") as dataset_file:
             song_entries_by_genre[row[4]].append(song_entry)
 
 genres = list(song_entries_by_genre.keys())
-songs_limit = 100
+songs_limit = 13000
 for genre in genres:
     song_entries_by_genre[genre] = song_entries_by_genre[genre][:songs_limit]
 
@@ -89,6 +90,26 @@ for genre, song_entries in song_entries_by_genre.items():
 train_song_entries = sorted([item for value in train_data.values() for item in value], key=lambda song: len(song.lyrics))
 validation_song_entries = sorted([item for value in validation_data.values() for item in value], key=lambda song: len(song.lyrics))
 test_song_entries = sorted([item for value in test_data.values() for item in value], key=lambda song: len(song.lyrics))
+
+empties_train, empties_test, empties_val = [],[],[]
+for i, song in enumerate(train_song_entries):
+    if song.lyrics == '':
+        empties_train.append(i)
+for i, song in enumerate(test_song_entries):
+    if song.lyrics == '':
+        empties_test.append(i)
+for i, song in enumerate(validation_song_entries):
+    if song.lyrics == '':
+        empties_val.append(i)
+
+for index in sorted(empties_train, reverse=True):
+    del train_song_entries[index]
+indexes = [2, 3, 5]
+for index in sorted(empties_test, reverse=True):
+    del test_song_entries[index]
+indexes = [2, 3, 5]
+for index in sorted(empties_val, reverse=True):
+    del validation_song_entries[index]
 
 lines_counter = 0
 for song in train_song_entries:
