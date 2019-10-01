@@ -3,28 +3,28 @@
 --num_classes 5
 --embedding_size 256
 --test-mode
---learning_rate 0.001
---hidden_dim 64
+--learning_rate 0.005
+--hidden_dim 128
+--hidden_dim_vae 256
+--z_dim 64
 --batch_size 1
 --combined_classification
---classifier_dir konstantin
+--classifier_dir full_lstm
 
 --generator SentenceVAE
 
 --vaes_dir
-tod1\country,tod1\hip-hop,tod1\metal,tod1\pop,tod1\rock
+full_vae\country,full_vae\hip-hop,full_vae\metal,full_vae\pop,full_vae\rock
 
 --classifier_name
-2019-09-23-acc-64
+model_best
 
 --vaes_names
 model_best,model_best,model_best,model_best,model_best
 
---hidden_dim_vae 64
+
 --analysis
 
 --loss VAELoss
-
-
 
 --dataset_class_sentencevae LyricsRawDataset

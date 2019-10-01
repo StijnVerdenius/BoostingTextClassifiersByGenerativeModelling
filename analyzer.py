@@ -47,10 +47,10 @@ class Analyzer:
     def analyze_misclassifications(self, test_logs):
 
         if test_logs is not None:
-            with open('logs1k.pickle', 'wb') as handle:
+            with open('logs_full_on_full.pickle', 'wb') as handle:
                 pickle.dump(test_logs, handle, protocol=pickle.HIGHEST_PROTOCOL)
         else:
-            with open('logs1k.pickle', 'rb') as handle:
+            with open('logs_full_on_full.pickle', 'rb') as handle:
                 test_logs = pickle.load(handle)
 
         combined_scores = torch.stack(test_logs['final_scores']).view(-1, 5).cpu()
@@ -58,7 +58,7 @@ class Analyzer:
         vaes_scores = torch.stack(test_logs['combination']['vaes_scores']).view(-1, 5).cpu()
         targets = torch.stack(test_logs['true_targets']).view(-1)
 
-        combined_scores = self.soft_voting(vaes_scores, classifier_scores)
+        # combined_scores = self.soft_voting(vaes_scores, classifier_scores)
 
         _, combined_predictions = combined_scores.max(dim=-1)
         _, classifier_predictions = classifier_scores.max(dim=-1)

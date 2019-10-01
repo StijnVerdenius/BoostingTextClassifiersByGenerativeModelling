@@ -36,6 +36,7 @@ class VAEClassifier(GeneralModel):
                         Genre.Metal.value if 'metal' in vae_file.lower() else (
                             Genre.Country.value if 'country' in vae_file.lower() else(
                                 )))))
+
             self.models[index] = find_right_model(GEN_DIR,
                                                   generator_class,
                                                   hidden_dim=hidden_dim,
@@ -55,10 +56,6 @@ class VAEClassifier(GeneralModel):
             for state_dict in loaded.values():
                 state_dict = state_dict
             self.models[index].load_state_dict(state_dict)
-
-        # print('same objects??')
-        # for model in self.models:
-        #     print(model is self.models[0])
 
     def forward(self, inp, lengths, step, targets):
         regs, recons, losses = [], [], []  # todo make sure one forward doesn't affect the other? or the loss?

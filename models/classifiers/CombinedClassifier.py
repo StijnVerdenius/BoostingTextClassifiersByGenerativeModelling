@@ -92,7 +92,7 @@ class CombinedClassifier(GeneralModel):
             elif self.combination_method is 'learn':
                 combined_score = self.weighted_sum(out_base_class_scores, vae_score)
 
-        print(step, vae_score.tolist(), vae_likelihood.tolist(), targets.item(), combined_score.tolist())
+        # print(step, vae_score.tolist(), vae_likelihood.tolist(), targets.item(), combined_score.tolist())
 
         return combined_score, (out_base_class_scores, vae_likelihood)
 

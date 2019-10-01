@@ -46,6 +46,9 @@ class LyricsRawDataset(BaseDataset):
         else:
             self._load_data()
 
+        print('-- Loaded dataset:', set_name, '- size:', self.__len__())
+
+
     def use_collate_function(self) -> bool:
         return False
 
