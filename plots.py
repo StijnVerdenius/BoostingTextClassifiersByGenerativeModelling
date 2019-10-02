@@ -1,9 +1,10 @@
 import numpy as np
 import matplotlib.pyplot as plt
+import matplotlib.colors as colors
 
 def save_percentage_plot(lstm_numbers, vae_numbers, combined_numbers, name):
 
-    category_names = ['Correctly Classified by LSTM', 'Misclassified by LSTM', 'Other model correct, LSTM wrong', 'Both wrong']
+    category_names = ['Correctly Classified', 'Misclassified', 'Other model correct, LSTM wrong', 'Both wrong']
     results = {
         'LSTM': lstm_numbers,
         'VAE': vae_numbers,
@@ -24,9 +25,10 @@ def save_percentage_plot(lstm_numbers, vae_numbers, combined_numbers, name):
     labels = list(results.keys())
     data = np.array(list(results.values()))
     data_cum = data.cumsum(axis=1)
-    category_colors = plt.get_cmap('RdYlGn')(
-        np.linspace(0.15, 0.85, 4))
-    category_colors = np.concatenate((category_colors, category_colors), axis=0)
+
+    color1 = np.asarray(colors.to_rgba('green'))
+    color2 = np.asarray(colors.to_rgba('red'))
+    category_colors = np.row_stack((color1, color2, color1, color2))
 
     fig, ax = plt.subplots(figsize=(9.2, 5))
     ax.invert_yaxis()
@@ -36,13 +38,16 @@ def save_percentage_plot(lstm_numbers, vae_numbers, combined_numbers, name):
     for i, (colname, color) in enumerate(zip(category_names, category_colors)):
         widths = data[:, i]
         starts = data_cum[:, i] - widths
-        ax.barh(labels, widths, left=starts, height=0.5,
+        if i > 1:
+            colname = None
+        ax.barh(labels, widths, left=starts, height=0.8,
                 label=colname, color=color)
         xcenters = starts + widths / 2
 
         r, g, b, _ = color
         text_color = 'white' if r * g * b < 0.5 else 'darkgrey'
         for y, (x, c) in enumerate(zip(xcenters, widths)):
+            c = round(c,2)
             if c  > 0.025:
                 ax.text(x, y, str(c), ha='center', va='center',
                         color=text_color)
