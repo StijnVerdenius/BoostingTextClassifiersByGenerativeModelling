@@ -11,6 +11,7 @@ from typing import List
 from plots import save_percentage_plot
 import numpy as np
 from torch import nn
+import seaborn as sns
 
 from statsmodels.stats.contingency_tables import mcnemar
 # from mlxtend.evaluate import permutation_test
@@ -96,8 +97,8 @@ class Analyzer:
             cm = cm.astype('float') / cm.sum(axis=1)[:, np.newaxis]
 
         ax = None
-        if plot_matrix:
-            ax = self.plot_confusion_matrix(cm, classes, analysis_folder, normalize, title)
+        # if plot_matrix:
+        #     ax = self.plot_confusion_matrix(cm, classes, analysis_folder, normalize, title)
 
         return cm, ax
 
@@ -109,17 +110,25 @@ class Analyzer:
         normalize=False,
         title=None,
         print_scores=True,
+        clim=None,
+        plot_colorbar=True,
         cmap=plt.cm.Blues):
 
         fig, ax = plt.subplots()
-        im = ax.imshow(cm, interpolation='nearest', cmap=cmap)
-        ax.figure.colorbar(im, ax=ax)
+        im = ax.imshow(cm, interpolation='none', cmap=cmap)
+
+        if clim:
+            im.set_clim(clim[0], clim[1])
+
+        if plot_colorbar:
+            ax.figure.colorbar(im, ax=ax)
+            
         # We want to show all ticks...
         ax.set(xticks=np.arange(cm.shape[1]),
             yticks=np.arange(cm.shape[0]),
             # ... and label them with the respective list entries
             xticklabels=classes, yticklabels=classes,
-            title=title,
+            # title=title,
             ylabel='True label',
             xlabel='Predicted label')
 
@@ -132,7 +141,7 @@ class Analyzer:
         # Loop over data dimensions and create text annotations.
         
         if print_scores:
-            fmt = '.2f' if normalize else 'd'
+            fmt = '.3f' if normalize else 'd'
             thresh = cm.max() / 2.
             for i in range(cm.shape[0]):
                 for j in range(cm.shape[1]):
@@ -153,8 +162,31 @@ class Analyzer:
         analysis_folder):
 
         classes=np.array(['Pop', 'Hip-Hop', 'Rock', 'Metal', 'Country'])
-        combined_cm, _ = self.calculate_confusion_matrix(targets, combined_predictions, classes, analysis_folder, normalize=False, title='Combined')
-        lstm_cm, _ = self.calculate_confusion_matrix(targets, classifier_predictions, classes, analysis_folder, normalize=False, title='LSTM')
+        combined_cm, _ = self.calculate_confusion_matrix(targets, combined_predictions, classes, analysis_folder, normalize=True, title='Combined')
+        lstm_cm, _ = self.calculate_confusion_matrix(targets, classifier_predictions, classes, analysis_folder, normalize=True, title='LSTM')
+
+        max_cm = np.max([np.max(combined_cm), np.max(lstm_cm)])
+        
+        
+        self.plot_confusion_matrix(
+            combined_cm,
+            classes,
+            analysis_folder,
+            normalize=True,
+            title='Combined',
+            cmap=plt.cm.Blues,
+            clim=[0, max_cm],
+            print_scores=True)
+            
+        self.plot_confusion_matrix(
+            lstm_cm,
+            classes,
+            analysis_folder,
+            normalize=True,
+            title='LSTM',
+            cmap=plt.cm.Blues,
+            clim=[0, max_cm],
+            print_scores=True)
 
         diff_cm = combined_cm - lstm_cm
         ones = np.ones(diff_cm.shape, dtype=np.int32) * (-1)
@@ -168,8 +200,11 @@ class Analyzer:
             normalize=False,
             title='Difference',
             cmap=plt.cm.RdYlGn,
+            clim=[-np.max(diff_cm), np.max(diff_cm)],
+            plot_colorbar=False,
             print_scores=False)
 
+        sns.set()
         plt.show()
 
     def compute_significance(self, targets, combined_predictions, classifier_predictions):
