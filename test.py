@@ -41,7 +41,10 @@ class Tester:
             log = {'final_scores': [], 'combination': {
                 'classifier_scores': [], 'vaes_scores': []},
                    'accuracies_per_batch': [],
-                   'true_targets': []}
+                   'true_targets': [],
+                   'length_lstm': [],
+                   'length_vae': []
+                   }
 
             # for i, items in enumerate(self.data_loader_test):
             for i, items in enumerate(zip(self.data_loader_test, self.data_loader_sentence)):
@@ -92,7 +95,6 @@ class Tester:
         if (step % 100) == 0:
             print(step)
 
-
         batch2, targets2, lengths2 = sentencebatch
         batch = batch.to(self.device).detach()
         targets = targets.to(self.device).detach()
@@ -115,4 +117,7 @@ class Tester:
         accuracy = (targets.eq(classifications)).float().mean().item()
 
         log['final_scores'].append(final_scores_per_class.detach())
+        log['length_lstm'].append(lengths.detach())
+        log['length_vae'].append(lengths2.detach())
+
         return accuracy
