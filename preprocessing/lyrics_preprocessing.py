@@ -64,7 +64,7 @@ with open(dataset_file_path, 'r', encoding="utf8") as dataset_file:
             song_entries_by_genre[row[4]].append(song_entry)
 
 genres = list(song_entries_by_genre.keys())
-songs_limit = 100
+songs_limit = 13000
 for genre in genres:
     song_entries_by_genre[genre] = song_entries_by_genre[genre][:songs_limit]
 
@@ -84,26 +84,49 @@ for genre, song_entries in song_entries_by_genre.items():
     min_length = min([len(song_entry.lyrics) for song_entry in song_entries])
     max_length = max([len(song_entry.lyrics) for song_entry in song_entries])
     avg_length = np.mean([len(song_entry.lyrics) for song_entry in song_entries])
-    print(f'{genre} - min: {min_length} | max: {max_length} | mean: {avg_length} | all: {len(song_entries)} | train: {len(train_data[genre])} | validation: {len(validation_data[genre])} | test: {len(test_data[genre])}')
+    avg_number_of_unique_words = np.mean([song_entry.number_of_unique_words for song_entry in song_entries])
+    avg_n_words = np.mean([song_entry.number_of_words for song_entry in song_entries])
+    print(f'{genre} - min: {min_length} | n_words: {avg_n_words} | unique_words: {avg_number_of_unique_words} | max: {max_length} | mean: {avg_length} | all: {len(song_entries)} | train: {len(train_data[genre])} | validation: {len(validation_data[genre])} | test: {len(test_data[genre])}')
 
 train_song_entries = sorted([item for value in train_data.values() for item in value], key=lambda song: len(song.lyrics))
 validation_song_entries = sorted([item for value in validation_data.values() for item in value], key=lambda song: len(song.lyrics))
 test_song_entries = sorted([item for value in test_data.values() for item in value], key=lambda song: len(song.lyrics))
 
+n_lines_count = []
+n_words_count = []
+n_chars_count = []
+
 lines_counter = 0
 for song in train_song_entries:
     song.start_index = lines_counter
     lines_counter += song.number_of_lines
+    n_lines_count.append(song.number_of_lines)
+    n_words_count.append(song.number_of_words)
+    n_chars_count.append(song.number_of_chars)
 
 lines_counter = 0
 for song in validation_song_entries:
     song.start_index = lines_counter
     lines_counter += song.number_of_lines
+    n_lines_count.append(song.number_of_lines)
+    n_words_count.append(song.number_of_words)
+    n_chars_count.append(song.number_of_chars)
     
 lines_counter = 0
 for song in test_song_entries:
     song.start_index = lines_counter
     lines_counter += song.number_of_lines
+    n_lines_count.append(song.number_of_lines)
+    n_words_count.append(song.number_of_words)
+    n_chars_count.append(song.number_of_chars)
+
+n_lines_count = np.asarray(n_lines_count)
+n_words_count = np.asarray(n_words_count)
+n_chars_count = np.asarray(n_chars_count)
+
+print('Average number of lines ', n_lines_count.mean())
+print('Average number of words ', n_words_count.mean())
+print('Average number of chars ', n_chars_count.mean())
 
 data_manager = DataManager(main_path)
 data_manager.save_python_obj(train_song_entries, 'song_lyrics.train')

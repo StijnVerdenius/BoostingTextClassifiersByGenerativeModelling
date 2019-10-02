@@ -1,5 +1,6 @@
 import re
 import sys
+from collections import Counter
 
 sys.path.append('..')
 
@@ -49,3 +50,18 @@ class Song():
     @property
     def number_of_lines(self) -> int:
         return self._lyrics.count('\n') + 1
+
+    @property
+    def number_of_words(self) -> int:
+        return self._lyrics.count(' ') + 1
+
+    @property
+    def number_of_chars(self) -> int:
+        return len(self._lyrics)
+
+    @property
+    def number_of_unique_words(self) -> int:
+        lyrics_without_nl = self.lyrics.replace('\n', '')
+        all_words = lyrics_without_nl.split(' ')
+        all_words = [x.lower() for x in all_words]
+        return len(Counter(all_words).keys())
