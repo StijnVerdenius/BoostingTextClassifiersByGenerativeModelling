@@ -109,10 +109,15 @@ class Analyzer:
         normalize=False,
         title=None,
         print_scores=True,
+        normalize_colors=False,
         cmap=plt.cm.Blues):
 
         fig, ax = plt.subplots()
-        im = ax.imshow(cm, interpolation='nearest', cmap=cmap)
+        im = ax.imshow(cm, interpolation='none', cmap=cmap)
+
+        if normalize_colors:
+            im.set_clim(-np.max(cm), np.max(cm))
+
         ax.figure.colorbar(im, ax=ax)
         # We want to show all ticks...
         ax.set(xticks=np.arange(cm.shape[1]),
@@ -168,6 +173,7 @@ class Analyzer:
             normalize=False,
             title='Difference',
             cmap=plt.cm.RdYlGn,
+            normalize_colors=True,
             print_scores=False)
 
         plt.show()
