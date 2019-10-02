@@ -24,8 +24,6 @@ class VAEClassifier(GeneralModel):
 
         self.loss_func = find_right_model(LOSS_DIR, generator_loss, dataset_options=dataset_options, test_mode=test_mode).to(device)
 
-        self.MSEELBOOOOOO = find_right_model(LOSS_DIR, 'MSE_ELBO', dataset_options=dataset_options).to(device)
-
         self.models = [None]*len(vae_files)
         for v, vae_file in enumerate(vae_files):
             vae_file = os.path.join(GITIGNORED_DIR, RESULTS_DIR, vae_file)
@@ -59,21 +57,11 @@ class VAEClassifier(GeneralModel):
 
     def forward(self, inp, lengths, step, targets):
         regs, recons, losses = [], [], []  # todo make sure one forward doesn't affect the other? or the loss?
-        LOSS = 'TOD'
 
         for m, model in enumerate(self.models):
             output = model.forward(inp.detach(), lengths, step)
-
-            if LOSS == 'STIJN':
-                _, _, _, x0, batch_size, logp, mean, logv, z, std = output
-                print(logp.shape, inp.shape)
-                print(inp)
-                reg, recon = self.MSEELBOOOOOO.test(None, mean, std, logp, inp)
-                regs.append(reg)
-                recons.append(recon)
-            else:
-                loss = self.loss_func.forward(targets, *output)
-                losses.append(loss)
+            loss = self.loss_func.forward(targets, *output)
+            losses.append(loss)
 
         return regs, recons, losses
 

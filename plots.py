@@ -47,10 +47,10 @@ def save_percentage_plot(lstm_numbers, vae_numbers, combined_numbers, name):
         r, g, b, _ = color
         text_color = 'white' if r * g * b < 0.5 else 'darkgrey'
         for y, (x, c) in enumerate(zip(xcenters, widths)):
-            c = round(c,2)
-            if c  > 0.025:
-                ax.text(x, y, str(c), ha='center', va='center',
-                        color=text_color)
+            c = round(c, 2)
+            if c > 0.025:
+                ax.text(x, y, str(int(c*100)), ha='center', va='center',
+                        color=text_color, size='xx-large')
         ax.legend(ncol=len(category_names), bbox_to_anchor=(0, 1),
                   loc='lower left', fontsize='small')
 

@@ -91,24 +91,15 @@ class CombinedClassifier(GeneralModel):
         out_base = self.base_classifier.forward(inp.detach(), lengths.detach())  # need to put through softmax
         out_base_class_scores = nn.functional.softmax(*out_base, dim=-1).detach()
 
-        LOSS = 'TOD'
+        _, _, vae_loss = self.vae_classifier.forward(inp2, lengths2, step, targets2)
+        vae_loss = torch.stack(vae_loss)
+        vae_likelihood = - vae_loss
+        vae_score = nn.Softmax(dim=-1)(vae_likelihood)
 
-        if LOSS == 'STIJN':
-            out_vaes_regul, out_vaes_reconst, _ = self.vae_classifier.forward(inp2, lengths2, step, targets2)
-            out_vaes_regul = torch.stack(out_vaes_regul).permute([-1, 0])
-            out_vaes_reconst = torch.stack(out_vaes_reconst).permute([-1, 0])
-            vae_score = - (out_vaes_regul + out_vaes_reconst)
-
-        elif LOSS == 'TOD':
-            _, _, vae_loss = self.vae_classifier.forward(inp2, lengths2, step, targets2)
-            vae_loss = torch.stack(vae_loss)
-            vae_likelihood = - vae_loss
-            vae_score = nn.Softmax(dim=-1)(vae_likelihood)
-
-            if 'joint' in self.combination_method:
-                combined_score = self.joint_probability(out_base_class_scores, vae_score)
-            elif 'learn' in self.combination_method :
-                combined_score = self.weighted_sum(out_base_class_scores, vae_score)
+        if 'joint' in self.combination_method:
+            combined_score = self.joint_probability(out_base_class_scores, vae_score)
+        elif 'learn' in self.combination_method :
+            combined_score = self.weighted_sum(out_base_class_scores, vae_score)
 
         # print(step, vae_score.tolist(), vae_likelihood.tolist(), targets.item(), combined_score.tolist())
 

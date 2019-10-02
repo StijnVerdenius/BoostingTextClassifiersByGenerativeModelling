@@ -208,6 +208,13 @@ class Analyzer:
         vaes_scores = torch.stack(test_logs['combination']['vaes_scores']).view(-1, 5)
         targets = torch.stack(test_logs['true_targets']).view(-1).to(self.device)
 
+
+        print(targets.tolist().count(0))
+        print(targets.tolist().count(1))
+        print(targets.tolist().count(2))
+        print(targets.tolist().count(3))
+        print(targets.tolist().count(4))
+
         _, combined_predictions = combined_scores.max(dim=-1)
         _, classifier_predictions = classifier_scores.max(dim=-1)
         _, vaes_predictions = vaes_scores.max(dim=-1)
