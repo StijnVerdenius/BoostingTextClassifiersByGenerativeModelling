@@ -15,6 +15,7 @@ from torch import nn
 from statsmodels.stats.contingency_tables import mcnemar
 from plots import save_ipek_plot
 
+
 # from mlxtend.evaluate import permutation_test
 
 
@@ -254,6 +255,10 @@ class Analyzer:
         print("----------------------------------------------")
         self.compute_confusion_matrix(targets, combined_predictions, classifier_predictions, analysis_folder)
 
+        # check if combination correctly classified these? check how many
+        # print(combined_compare[classifier_misfire_indices])
+
+        # print(classifier_misfire_indices)
 
         # IPEK PLOT
 
@@ -275,15 +280,14 @@ class Analyzer:
 
         lstm_classifier = classifier_compare.tolist().count(1) / len_of_dataset
 
-
-        save_ipek_plot([lstm_classifier, 1 - lstm_classifier, 0, 0], [1-vae_wrong_class_wrong-vae_wrong_class_right-
-                                                                      vae_right_class_wrong, vae_wrong_class_right,
-                                                                      vae_right_class_wrong, vae_wrong_class_wrong],
+        save_ipek_plot([lstm_classifier, 1 - lstm_classifier, 0, 0],
+                       [1 - vae_wrong_class_wrong - vae_wrong_class_right -
+                        vae_right_class_wrong, vae_wrong_class_right,
+                        vae_right_class_wrong, vae_wrong_class_wrong],
                        [1 - comb_wrong_class_wrong - comb_wrong_class_right -
                         comb_right_class_wrong, comb_wrong_class_right,
                         comb_right_class_wrong, comb_wrong_class_wrong],
                        'Ipek_plot')
-
 
     def uncertainty_analysis(self, vaes_scores, classifier_scores, targets, combined_scores):
 
