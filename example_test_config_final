@@ -9,16 +9,13 @@
 --z_dim 64
 --batch_size 1
 --combined_classification
---classifier_dir full_lstm
-
 --generator SentenceVAE
 
+--classifier_dir full_lstm
 --vaes_dir
 full_vae\country,full_vae\hip-hop,full_vae\metal,full_vae\pop,full_vae\rock
-
 --classifier_name
 model_best
-
 --vaes_names
 model_best,model_best,model_best,model_best,model_best
 

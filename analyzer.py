@@ -8,7 +8,7 @@ from sklearn import metrics
 from sklearn.utils.multiclass import unique_labels
 import matplotlib.pyplot as plt
 from typing import List
-
+from plots import save_percentage_plot
 import numpy as np
 from torch import nn
 
@@ -251,6 +251,36 @@ class Analyzer:
 
         # print(classifier_misfire_indices)
 
+        # PLOT
+
+        classifier_misfire_indices = (classifier_compare == 0).nonzero()  # get misclassifications
+        combined_misfire_indices = (combined_compare == 0).nonzero()  # get misclassifications
+        vaes_misfire_indices = (vaes_compare == 0).nonzero()  # get misclassifications
+
+        len_of_dataset = len(classifier_compare.tolist())
+
+        #  Compare LSTM with VAE
+        vae_right_class_wrong = vaes_compare[classifier_misfire_indices].tolist().count([1]) / len_of_dataset
+        vae_wrong_class_wrong = classifier_compare[vaes_misfire_indices].tolist().count([0]) / len_of_dataset
+        vae_wrong_class_right = classifier_compare[vaes_misfire_indices].tolist().count([1]) / len_of_dataset
+
+        #  Compare LSTM with Combined
+        comb_right_class_wrong = combined_compare[classifier_misfire_indices].tolist().count([1]) / len_of_dataset
+        comb_wrong_class_wrong = classifier_compare[combined_misfire_indices].tolist().count([0]) / len_of_dataset
+        comb_wrong_class_right = classifier_compare[combined_misfire_indices].tolist().count([1]) / len_of_dataset
+
+        lstm_classifier = classifier_compare.tolist().count(1) / len_of_dataset
+
+        save_percentage_plot([lstm_classifier, 1 - lstm_classifier, 0, 0],
+                       [1 - vae_wrong_class_wrong - vae_wrong_class_right -
+                        vae_right_class_wrong, vae_wrong_class_right,
+                        vae_right_class_wrong, vae_wrong_class_wrong],
+                       [1 - comb_wrong_class_wrong - comb_wrong_class_right -
+                        comb_right_class_wrong, comb_wrong_class_right,
+                        comb_right_class_wrong, comb_wrong_class_wrong],
+                       'Ipek_plot')
+
+
     def uncertainty_analysis(self, vaes_scores, classifier_scores, targets, combined_scores):
 
         _, combined_predictions = combined_scores.max(dim=-1)
@@ -270,8 +300,8 @@ class Analyzer:
         classifier_prediction_values = classifier_scores[np.arange(0, len(classifier_scores)),
                                                          classifier_predictions_indices.long()]
 
-        classifier_uncertain_indices = ((classifier_prediction_values < 0.50).eq(
-            classifier_prediction_values > 0.00)).nonzero()
+        classifier_uncertain_indices = ((classifier_prediction_values <= 0.35).eq(
+            classifier_prediction_values >= 0.00)).nonzero()
 
         # vae_scores_for_uncertain = vaes_scores[classifier_uncertain_indices]
         vae_scores_for_uncertain, pred_vae = vaes_scores_softmax[classifier_uncertain_indices.long()].max(dim=-1)
