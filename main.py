@@ -58,9 +58,6 @@ def main(arguments: argparse.Namespace):
         if arguments.dataset_class_sentencevae:
             arguments.dataset_class = arguments.dataset_class_sentencevae
             data_loader_sentenceVAE = load_dataloader(arguments, TEST_SET)
-
-        # print(data_loader_test.dataset.__len__(),
-        #       data_loader_sentenceVAE.dataset.__len__())
     else:
         # load needed data
         data_loader_train = load_dataloader(arguments, TRAIN_SET)
@@ -93,13 +90,14 @@ def main(arguments: argparse.Namespace):
         arguments=arguments,
         z_dim=arguments.z_dim,
         n_channels_in=arguments.embedding_size,
-        test_mode=arguments.test_mode).to(device)
+        test_mode=arguments.test_mode,
+        combined_weights_load=arguments.combined_weights).to(device)
 
     # if we are in train mode..
     if arguments.test_mode:
-        # tester = Tester(model, data_loader_test, device=device, data_loader_sentence=data_loader_sentenceVAE)
-        # test_logs = tester.test()
-        test_logs = None
+        tester = Tester(model, data_loader_test, device=device, data_loader_sentence=data_loader_sentenceVAE)
+        test_logs = tester.test()
+        # test_logs = None
         if arguments.analysis:
             analyzer = Analyzer(model, device=device, num_classes=arguments.num_classes)
             analyzer.analyze_misclassifications(test_logs)
@@ -221,6 +219,7 @@ def parse() -> argparse.Namespace:
     parser.add_argument('--vaes_names', default="", type=str, help='vaes model names under models(sep by comma)')
     parser.add_argument('--hidden_dim_vae', default=0, type=int, help='needed only when vae and lstm have different')
     parser.add_argument('--combination', default="joint", type=str, help='joint/learn_sum/learn_classifier')
+    parser.add_argument('--combined_weights', default=None, type=str, help='model folder name for combined weights')
 
     # analysis
     parser.add_argument('--analysis', action='store_true', help='do analysis')

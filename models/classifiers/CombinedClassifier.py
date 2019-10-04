@@ -19,6 +19,7 @@ class CombinedClassifier(GeneralModel):
                  # below: probably things we wont change
                  classifier_class='LSTMClassifier',
                  test_mode=False,
+                 combined_weights_load = None,
                  combination_method='joint',
                  only_eval=True,
                  n_channels_in=(0), device="cpu", **kwargs):
@@ -86,6 +87,19 @@ class CombinedClassifier(GeneralModel):
             self.W_classifier.requires_grad = True
             self.W_vaes.requires_grad = True
 
+            if combined_weights_load is not None:
+                weights_load = os.path.join(GITIGNORED_DIR, RESULTS_DIR, combined_weights_load)
+                datamanager = DataManager(weights_load)
+                loaded = datamanager.load_python_obj(os.path.join('models', 'finished'))
+
+            for state_dict in loaded.values():
+                state_dict = state_dict
+            self.load_state_dict(state_dict)
+
+            print(self.W_classifier)
+            print(self.W_vaes)
+
+
     def forward(self, inp, targets, lengths, inp_sentence, step):
         inp2, targets2, lengths2 = inp_sentence
         out_base = self.base_classifier.forward(inp.detach(), lengths.detach())  # need to put through softmax
@@ -98,7 +112,7 @@ class CombinedClassifier(GeneralModel):
 
         if 'joint' in self.combination_method:
             combined_score = self.joint_probability(out_base_class_scores, vae_score)
-        elif 'learn' in self.combination_method :
+        elif 'learn' in self.combination_method:
             combined_score = self.weighted_sum(out_base_class_scores, vae_score)
 
         # print(step, vae_score.tolist(), vae_likelihood.tolist(), targets.item(), combined_score.tolist())

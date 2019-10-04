@@ -5,6 +5,7 @@ from torch.utils.data import DataLoader
 from utils.constants import *
 from typing import List, Tuple
 from models.enums.Genre import Genre
+import numpy as np
 
 class Tester:
     # input: both network models
@@ -46,32 +47,17 @@ class Tester:
                    'length_vae': []
                    }
 
-            # for i, items in enumerate(self.data_loader_test):
             for i, items in enumerate(zip(self.data_loader_test, self.data_loader_sentence)):
-
                 (batch, targets, lengths), (batch2, targets2, lengths2) = items
-                # if 'Wrapper' in type(self.data_loader_test.dataset).__name__:
-                #     (batch, targets, lengths), (batch2, targets2, lengths2) = items
-                # else:
-                #     (batch, targets, lengths) = items
 
                 accuracy_batch = self._batch_iteration(batch, targets, lengths, log, (batch2, targets2, lengths2), i)
 
                 log['accuracies_per_batch'].append(accuracy_batch)
                 log['true_targets'].append(targets)
 
-                # if i==900:
-                #     break
-                # break
-                # if i>2:
-                #     break
+                if i % 100 == 0:
+                    print('combined accuracy so far', np.mean(log['accuracies_per_batch']), i)
 
-            # average over all accuracy batches
-            # batches_tested = len(results)
-            # average_accuracy = torch.mean(results)
-            # average_scores = torch.mean(results["acc"])/batches_tested
-
-            # return average_accuracy, average_scores
             return log
         except KeyboardInterrupt as e:
             print(f"Killed by user: {e}")
