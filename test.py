@@ -1,11 +1,12 @@
-import os, torch, sys
-from utils.system_utils import setup_directories, save_codebase_of_run
-from utils.model_utils import calculate_accuracy
 from torch.utils.data import DataLoader
 from utils.constants import *
 from typing import List, Tuple
 from models.enums.Genre import Genre
 import numpy as np
+from torch.utils.data import DataLoader
+
+from utils.constants import *
+
 
 class Tester:
     # input: both network models
@@ -28,11 +29,8 @@ class Tester:
 
     def test(self):
         """
-         main training function
+         main testing function
         """
-        # setup data output directories:
-        setup_directories()
-        # save_codebase_of_run(self.arguments)
 
         try:
             # loading saved trained weights

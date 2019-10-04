@@ -1,10 +1,9 @@
 import torch.nn as nn
-import torch
+
+from models.GeneralModel import GeneralModel
 from utils.constants import *
 from utils.model_utils import find_right_model
-from models.GeneralModel import GeneralModel
-from models.classifiers import VAEClassifier
-from torch.autograd import Variable
+
 
 class CombinedClassifier(GeneralModel):
 
@@ -60,7 +59,6 @@ class CombinedClassifier(GeneralModel):
         self.base_classifier.load_state_dict(state_dict)
 
         # in case we wanna learn a weighted sum
-        # TODO I guess this should be saved n loaded as well?
         self.combination_method = combination_method
 
         if self.combination_method == 'learn_classifier':
@@ -82,8 +80,8 @@ class CombinedClassifier(GeneralModel):
 
         elif self.combination_method == "learn_sum":
 
-            self.W_classifier = nn.Parameter(torch.ones((num_classes,))*0.5)
-            self.W_vaes = nn.Parameter(torch.ones((num_classes,) )* 0.5)
+            self.W_classifier = nn.Parameter(torch.ones((num_classes,)) * 0.5)
+            self.W_vaes = nn.Parameter(torch.ones((num_classes,)) * 0.5)
             self.W_classifier.requires_grad = True
             self.W_vaes.requires_grad = True
 
@@ -114,8 +112,8 @@ class CombinedClassifier(GeneralModel):
             combined_score = self.joint_probability(out_base_class_scores, vae_score)
         elif 'learn' in self.combination_method:
             combined_score = self.weighted_sum(out_base_class_scores, vae_score)
-
-        # print(step, vae_score.tolist(), vae_likelihood.tolist(), targets.item(), combined_score.tolist())
+        else:
+            raise Exception
 
         return combined_score, (out_base_class_scores, vae_likelihood)
 
@@ -124,7 +122,7 @@ class CombinedClassifier(GeneralModel):
 
     def joint_probability(self, pxy, px):
         approach_px = torch.exp(px)
-        return pxy*approach_px
+        return pxy * approach_px
 
     def weighted_sum(self, classifier_score, vaes_score):  # TODO: give elbo or recons or (regul??) ??
         if self.combination_method == "learn_classifier":

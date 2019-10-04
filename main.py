@@ -1,6 +1,7 @@
 import torch
 
 from joint_training import JointTraining
+from test import Tester
 
 try:
     torch.cuda.current_device()
@@ -14,7 +15,6 @@ from torch.utils.data import DataLoader
 from models.enums.Genre import Genre
 from models.datasets.BaseDataset import BaseDataset
 
-from test import Tester
 from train import Trainer
 from analyzer import Analyzer
 from utils.constants import *
@@ -107,7 +107,6 @@ def main(arguments: argparse.Namespace):
 
         # get optimizer and loss function
         optimizer = find_right_model(OPTIMS, arguments.optimizer, params=model.parameters(), lr=arguments.learning_rate)
-
 
         if arguments.joint_training:
             loss_function = find_right_model(LOSS_DIR, arguments.loss, dataset_options=data_loader_train_.dataset,
