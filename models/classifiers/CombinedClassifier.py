@@ -1,10 +1,9 @@
 import torch.nn as nn
-import torch
+
+from models.GeneralModel import GeneralModel
 from utils.constants import *
 from utils.model_utils import find_right_model
-from models.GeneralModel import GeneralModel
-from models.classifiers import VAEClassifier
-from torch.autograd import Variable
+
 
 class CombinedClassifier(GeneralModel):
 
@@ -59,7 +58,6 @@ class CombinedClassifier(GeneralModel):
         self.base_classifier.load_state_dict(state_dict)
 
         # in case we wanna learn a weighted sum
-        # TODO I guess this should be saved n loaded as well?
         self.combination_method = combination_method
 
         if self.combination_method == 'learn_classifier':
@@ -81,8 +79,8 @@ class CombinedClassifier(GeneralModel):
 
         elif self.combination_method == "learn_sum":
 
-            self.W_classifier = nn.Parameter(torch.ones((num_classes,))*0.5)
-            self.W_vaes = nn.Parameter(torch.ones((num_classes,) )* 0.5)
+            self.W_classifier = nn.Parameter(torch.ones((num_classes,)) * 0.5)
+            self.W_vaes = nn.Parameter(torch.ones((num_classes,)) * 0.5)
             self.W_classifier.requires_grad = True
             self.W_vaes.requires_grad = True
 
@@ -91,26 +89,17 @@ class CombinedClassifier(GeneralModel):
         out_base = self.base_classifier.forward(inp.detach(), lengths.detach())  # need to put through softmax
         out_base_class_scores = nn.functional.softmax(*out_base, dim=-1).detach()
 
-        LOSS = 'TOD'
+        _, _, vae_loss = self.vae_classifier.forward(inp2, lengths2, step, targets2)
+        vae_loss = torch.stack(vae_loss)
+        vae_likelihood = - vae_loss
+        vae_score = nn.Softmax(dim=-1)(vae_likelihood)
 
-        if LOSS == 'STIJN':
-            out_vaes_regul, out_vaes_reconst, _ = self.vae_classifier.forward(inp2, lengths2, step, targets2)
-            out_vaes_regul = torch.stack(out_vaes_regul).permute([-1, 0])
-            out_vaes_reconst = torch.stack(out_vaes_reconst).permute([-1, 0])
-            vae_score = - (out_vaes_regul + out_vaes_reconst)
-
-        elif LOSS == 'TOD':
-            _, _, vae_loss = self.vae_classifier.forward(inp2, lengths2, step, targets2)
-            vae_loss = torch.stack(vae_loss)
-            vae_likelihood = - vae_loss
-            vae_score = nn.Softmax(dim=-1)(vae_likelihood)
-
-            if 'joint' in self.combination_method:
-                combined_score = self.joint_probability(out_base_class_scores, vae_score)
-            elif 'learn' in self.combination_method :
-                combined_score = self.weighted_sum(out_base_class_scores, vae_score)
-
-        # print(step, vae_score.tolist(), vae_likelihood.tolist(), targets.item(), combined_score.tolist())
+        if 'joint' in self.combination_method:
+            combined_score = self.joint_probability(out_base_class_scores, vae_score)
+        elif 'learn' in self.combination_method:
+            combined_score = self.weighted_sum(out_base_class_scores, vae_score)
+        else:
+            raise Exception
 
         return combined_score, (out_base_class_scores, vae_likelihood)
 
@@ -119,7 +108,7 @@ class CombinedClassifier(GeneralModel):
 
     def joint_probability(self, pxy, px):
         approach_px = torch.exp(px)
-        return pxy*approach_px
+        return pxy * approach_px
 
     def weighted_sum(self, classifier_score, vaes_score):  # TODO: give elbo or recons or (regul??) ??
         if self.combination_method == "learn_classifier":

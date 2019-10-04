@@ -1,6 +1,7 @@
 import torch
 
 from joint_training import JointTraining
+from test import Tester
 
 try:
     torch.cuda.current_device()
@@ -14,7 +15,6 @@ from torch.utils.data import DataLoader
 from models.enums.Genre import Genre
 from models.datasets.BaseDataset import BaseDataset
 
-from test import Tester
 from train import Trainer
 from analyzer import Analyzer
 from utils.constants import *
@@ -58,9 +58,6 @@ def main(arguments: argparse.Namespace):
         if arguments.dataset_class_sentencevae:
             arguments.dataset_class = arguments.dataset_class_sentencevae
             data_loader_sentenceVAE = load_dataloader(arguments, TEST_SET)
-
-        # print(data_loader_test.dataset.__len__(),
-        #       data_loader_sentenceVAE.dataset.__len__())
     else:
         # load needed data
         data_loader_train = load_dataloader(arguments, TRAIN_SET)
@@ -97,9 +94,9 @@ def main(arguments: argparse.Namespace):
 
     # if we are in train mode..
     if arguments.test_mode:
-        # tester = Tester(model, data_loader_test, device=device, data_loader_sentence=data_loader_sentenceVAE)
-        # test_logs = tester.test()
-        test_logs = None
+        tester = Tester(model, data_loader_test, device=device, data_loader_sentence=data_loader_sentenceVAE)
+        test_logs = tester.test()
+        # test_logs = None
         if arguments.analysis:
             analyzer = Analyzer(model, device=device, num_classes=arguments.num_classes)
             analyzer.analyze_misclassifications(test_logs)
@@ -109,7 +106,6 @@ def main(arguments: argparse.Namespace):
 
         # get optimizer and loss function
         optimizer = find_right_model(OPTIMS, arguments.optimizer, params=model.parameters(), lr=arguments.learning_rate)
-
 
         if arguments.joint_training:
             loss_function = find_right_model(LOSS_DIR, arguments.loss, dataset_options=data_loader_train_.dataset,

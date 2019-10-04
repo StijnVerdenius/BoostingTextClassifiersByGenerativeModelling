@@ -1,10 +1,9 @@
-import os, torch, sys
-from utils.system_utils import setup_directories, save_codebase_of_run
-from utils.model_utils import calculate_accuracy
 from torch.utils.data import DataLoader
 from utils.constants import *
-from typing import List, Tuple
-from models.enums.Genre import Genre
+from torch.utils.data import DataLoader
+
+from utils.constants import *
+
 
 class Tester:
     # input: both network models
@@ -27,11 +26,8 @@ class Tester:
 
     def test(self):
         """
-         main training function
+         main testing function
         """
-        # setup data output directories:
-        setup_directories()
-        # save_codebase_of_run(self.arguments)
 
         try:
             # loading saved trained weights
@@ -47,28 +43,12 @@ class Tester:
             for i, items in enumerate(zip(self.data_loader_test, self.data_loader_sentence)):
 
                 (batch, targets, lengths), (batch2, targets2, lengths2) = items
-                # if 'Wrapper' in type(self.data_loader_test.dataset).__name__:
-                #     (batch, targets, lengths), (batch2, targets2, lengths2) = items
-                # else:
-                #     (batch, targets, lengths) = items
 
                 accuracy_batch = self._batch_iteration(batch, targets, lengths, log, (batch2, targets2, lengths2), i)
 
                 log['accuracies_per_batch'].append(accuracy_batch)
                 log['true_targets'].append(targets)
 
-                # if i==900:
-                #     break
-                # break
-                # if i>2:
-                #     break
-
-            # average over all accuracy batches
-            # batches_tested = len(results)
-            # average_accuracy = torch.mean(results)
-            # average_scores = torch.mean(results["acc"])/batches_tested
-
-            # return average_accuracy, average_scores
             return log
         except KeyboardInterrupt as e:
             print(f"Killed by user: {e}")
