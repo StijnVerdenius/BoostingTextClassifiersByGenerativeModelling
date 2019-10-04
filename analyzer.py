@@ -8,9 +8,11 @@ from sklearn import metrics
 from sklearn.utils.multiclass import unique_labels
 import matplotlib.pyplot as plt
 from typing import List
-from plots import save_percentage_plot
+from plots import *
 import numpy as np
 from torch import nn
+import seaborn as sns
+from collections import defaultdict
 
 from statsmodels.stats.contingency_tables import mcnemar
 # from mlxtend.evaluate import permutation_test
@@ -96,8 +98,8 @@ class Analyzer:
             cm = cm.astype('float') / cm.sum(axis=1)[:, np.newaxis]
 
         ax = None
-        if plot_matrix:
-            ax = self.plot_confusion_matrix(cm, classes, analysis_folder, normalize, title)
+        # if plot_matrix:
+        #     ax = self.plot_confusion_matrix(cm, classes, analysis_folder, normalize, title)
 
         return cm, ax
 
@@ -109,17 +111,25 @@ class Analyzer:
         normalize=False,
         title=None,
         print_scores=True,
+        clim=None,
+        plot_colorbar=True,
         cmap=plt.cm.Blues):
 
         fig, ax = plt.subplots()
-        im = ax.imshow(cm, interpolation='nearest', cmap=cmap)
-        ax.figure.colorbar(im, ax=ax)
+        im = ax.imshow(cm, interpolation='none', cmap=cmap)
+
+        if clim:
+            im.set_clim(clim[0], clim[1])
+
+        if plot_colorbar:
+            ax.figure.colorbar(im, ax=ax)
+
         # We want to show all ticks...
         ax.set(xticks=np.arange(cm.shape[1]),
             yticks=np.arange(cm.shape[0]),
             # ... and label them with the respective list entries
             xticklabels=classes, yticklabels=classes,
-            title=title,
+            # title=title,
             ylabel='True label',
             xlabel='Predicted label')
 
@@ -132,7 +142,7 @@ class Analyzer:
         # Loop over data dimensions and create text annotations.
         
         if print_scores:
-            fmt = '.2f' if normalize else 'd'
+            fmt = '.3f' if normalize else 'd'
             thresh = cm.max() / 2.
             for i in range(cm.shape[0]):
                 for j in range(cm.shape[1]):
@@ -153,8 +163,31 @@ class Analyzer:
         analysis_folder):
 
         classes=np.array(['Pop', 'Hip-Hop', 'Rock', 'Metal', 'Country'])
-        combined_cm, _ = self.calculate_confusion_matrix(targets, combined_predictions, classes, analysis_folder, normalize=False, title='Combined')
-        lstm_cm, _ = self.calculate_confusion_matrix(targets, classifier_predictions, classes, analysis_folder, normalize=False, title='LSTM')
+        combined_cm, _ = self.calculate_confusion_matrix(targets, combined_predictions, classes, analysis_folder, normalize=True, title='Combined')
+        lstm_cm, _ = self.calculate_confusion_matrix(targets, classifier_predictions, classes, analysis_folder, normalize=True, title='LSTM')
+
+        max_cm = np.max([np.max(combined_cm), np.max(lstm_cm)])
+
+
+        self.plot_confusion_matrix(
+            combined_cm,
+            classes,
+            analysis_folder,
+            normalize=True,
+            title='Combined',
+            cmap=plt.cm.Blues,
+            clim=[0, max_cm],
+            print_scores=True)
+
+        self.plot_confusion_matrix(
+            lstm_cm,
+            classes,
+            analysis_folder,
+            normalize=True,
+            title='LSTM',
+            cmap=plt.cm.Blues,
+            clim=[0, max_cm],
+            print_scores=True)
 
         diff_cm = combined_cm - lstm_cm
         ones = np.ones(diff_cm.shape, dtype=np.int32) * (-1)
@@ -168,8 +201,11 @@ class Analyzer:
             normalize=False,
             title='Difference',
             cmap=plt.cm.RdYlGn,
+            clim=[-np.max(diff_cm), np.max(diff_cm)],
+            plot_colorbar=False,
             print_scores=False)
 
+        sns.set()
         plt.show()
 
     def compute_significance(self, targets, combined_predictions, classifier_predictions):
@@ -195,10 +231,10 @@ class Analyzer:
     def analyze_misclassifications(self, test_logs):
 
         if test_logs is not None:
-            with open('logs_full_on_full.pickle', 'wb') as handle:
+            with open('logs_full_on_full_wlens.pickle', 'wb') as handle:
                 pickle.dump(test_logs, handle, protocol=pickle.HIGHEST_PROTOCOL)
         else:
-            with open('logs_full_on_full.pickle', 'rb') as handle:
+            with open('logs_full_on_full_wlens.pickle', 'rb') as handle:
                 test_logs = pickle.load(handle)
 
         analysis_folder = self.ensure_analyzer_filesystem()
@@ -207,6 +243,9 @@ class Analyzer:
         classifier_scores = torch.stack(test_logs['combination']['classifier_scores']).view(-1, 5)
         vaes_scores = torch.stack(test_logs['combination']['vaes_scores']).view(-1, 5)
         targets = torch.stack(test_logs['true_targets']).view(-1).to(self.device)
+        song_lengths = torch.stack(test_logs['length_lstm']).view(-1).to(self.device)
+
+
 
         _, combined_predictions = combined_scores.max(dim=-1)
         _, classifier_predictions = classifier_scores.max(dim=-1)
@@ -232,6 +271,7 @@ class Analyzer:
                 F1 score
         '''
 
+        target_tensor = targets
         targets = targets.detach().tolist()
         combined_predictions = combined_predictions.tolist()
         classifier_predictions = classifier_predictions.tolist()
@@ -280,6 +320,57 @@ class Analyzer:
                         comb_right_class_wrong, comb_wrong_class_wrong],
                        'Ipek_plot')
 
+        # PLOT 2
+        classifier_y = defaultdict(lambda: np.zeros(0))
+        vae_y = defaultdict(lambda: np.zeros(0))
+        combined_y = defaultdict(lambda: np.zeros(0))
+
+        ordered_song_lengths_list = song_lengths.tolist()
+        ordered_song_lengths_list.sort()
+
+        # Cuz 12998/194=67 #quickmaths
+        chunks = [ordered_song_lengths_list[i:i + 67] for i in range(0, len(ordered_song_lengths_list), 67)]
+        for chunk in chunks:
+            y_class, y_vae, y_comb = [],[],[]
+            for song_length in list(set(chunk)):
+                class_indexes = (song_lengths == song_length).nonzero()
+                y_class.append((classifier_compare[class_indexes].tolist().count([1]) / len(classifier_compare[class_indexes].tolist())))
+                y_vae.append(vaes_compare[class_indexes].tolist().count([1]) / len(vaes_compare[class_indexes].tolist()))
+                y_comb.append(combined_compare[class_indexes].tolist().count([1]) / len(combined_compare[class_indexes].tolist()))
+            classifier_y[np.mean(chunk)] = np.mean(y_class)
+            vae_y[np.mean(chunk)] = np.mean(y_vae)
+            combined_y[np.mean(chunk)] = np.mean(y_comb)
+
+        save_lineplot_guan(classifier_y,vae_y,combined_y,'lineplot1')
+
+        # PLOT 3
+        plot_per_genre_data = []
+        for label in [0,1,2,3,4]:
+            plot_per_genre_data.append([])
+            classifier_y = defaultdict(lambda: np.zeros(0))
+            vae_y = defaultdict(lambda: np.zeros(0))
+            combined_y = defaultdict(lambda: np.zeros(0))
+
+            label_index = (target_tensor == label).nonzero()
+            ordered_song_lengths_list = song_lengths[label_index].tolist()
+            ordered_song_lengths_list = [item for sublist in ordered_song_lengths_list for item in sublist]
+
+            chunks = [ordered_song_lengths_list[i:i + 67] for i in range(0, len(ordered_song_lengths_list), 67)]
+            for chunk in chunks:
+                y_class, y_vae, y_comb = [], [], []
+                for song_length in list(set(chunk)):
+                    class_indexes = (song_lengths == song_length).nonzero()
+                    y_class.append((classifier_compare[class_indexes].tolist().count([1]) / len(
+                        classifier_compare[class_indexes].tolist())))
+                    y_vae.append(
+                        vaes_compare[class_indexes].tolist().count([1]) / len(vaes_compare[class_indexes].tolist()))
+                    y_comb.append(combined_compare[class_indexes].tolist().count([1]) / len(
+                        combined_compare[class_indexes].tolist()))
+                classifier_y[np.mean(chunk)] = np.mean(y_class)
+                vae_y[np.mean(chunk)] = np.mean(y_vae)
+                combined_y[np.mean(chunk)] = np.mean(y_comb)
+            plot_per_genre_data[label].append([classifier_y,vae_y,combined_y])
+        save_lineplot_per_genre(plot_per_genre_data)
 
     def uncertainty_analysis(self, vaes_scores, classifier_scores, targets, combined_scores):
 
@@ -332,4 +423,3 @@ class Analyzer:
         # print('cla', pred_class.tolist())
         # print('vae', pred_vae.tolist())
         # print('tru', true.tolist())
-

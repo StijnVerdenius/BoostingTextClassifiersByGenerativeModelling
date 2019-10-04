@@ -10,18 +10,6 @@ def save_percentage_plot(lstm_numbers, vae_numbers, combined_numbers, name):
         'VAE': vae_numbers,
         'Combined': combined_numbers
     }
-
-
-    """
-    Parameters
-    ----------
-    results : dict
-        A mapping from question labels to a list of answers per category.
-        It is assumed all lists contain the same number of entries and that
-        it matches the length of *category_names*.
-    category_names : list of str
-        The category labels.
-    """
     labels = list(results.keys())
     data = np.array(list(results.values()))
     data_cum = data.cumsum(axis=1)
@@ -55,3 +43,44 @@ def save_percentage_plot(lstm_numbers, vae_numbers, combined_numbers, name):
                   loc='lower left', fontsize='small')
 
     plt.savefig(name +'.png')
+
+def save_lineplot_guan(classifier_accs, vae_acss, combined_accs, name):
+    fig = plt.figure()
+    ax = plt.axes()
+
+    ys = [[],[],[]]
+    for i, accs_dict in enumerate([classifier_accs, vae_acss, combined_accs]):
+        x = []
+        for k, v in accs_dict.items():
+            x.append(k)
+            ys[i].append(v)
+
+    ax.plot(x, ys[0],label='LSTM')
+    ax.plot(x, ys[1],label='VAE')
+    ax.plot(x, ys[2],label='Combined')
+    ax.legend()
+    plt.savefig(name +'.png')
+
+def save_lineplot_per_genre(data):
+    genres = ['Pop', 'HipHop', 'Rock', 'Metal', 'County']
+    model = ['LSTM', 'VAE','Combined']
+    plot_data = {}
+
+    for genre_i, genre in enumerate(genres):
+        plot_data[genre] = {}
+        for i, accs_dict in enumerate(data[genre_i][0]):
+            temp_x = []
+            temp_y = []
+            for k, v in accs_dict.items():
+                temp_x.append(k)
+                temp_y.append(v)
+            plot_data[genre][model[i]] = temp_y
+        plot_data[genre]['x'] = temp_x
+
+    for i, name in enumerate(model):
+        fig = plt.figure()
+        ax = plt.axes()
+        for genre_i, genre in enumerate(genres):
+            ax.plot(plot_data[genre]['x'], plot_data[genre][name],label=genre)
+        ax.legend()
+        plt.savefig(name + '.png')
