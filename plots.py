@@ -7,8 +7,8 @@ def save_percentage_plot(lstm_numbers, vae_numbers, combined_numbers, name):
     category_names = ['Correctly Classified', 'Misclassified', 'Other model correct, LSTM wrong', 'Both wrong']
     results = {
         'LSTM': lstm_numbers,
-        'VAE': vae_numbers,
-        'Combined': combined_numbers
+        'Combined': combined_numbers,
+        'VAE': vae_numbers
     }
     labels = list(results.keys())
     data = np.array(list(results.values()))
