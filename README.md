@@ -6,7 +6,7 @@ We demonstrate the promising results of this ensemble approach to boosting in ou
 
 ![alt text](arch.png)
 
-# Running
+# Usage
  The implementation offers many different models, loss functions etc. to pick from, hence there are many configurations. 
  To run training or testing you need our pre-processed data sets which take up quite some space so they're not provided in this repository. 
  
@@ -22,6 +22,7 @@ Our final testing preferences:
 We also provide a pickle file which loads a dictionary of our test logs consisting of combined, LSTM and VAE-Classifier models score results. 
 These can be directly loaded and processed if run the test preferences with --skip_test.
 
+#Configurations
 #### List of parameters (this is konstantins) (maybe we can skip this:D dont bother)
 
 | Parameter     | type          | default value  | description |
