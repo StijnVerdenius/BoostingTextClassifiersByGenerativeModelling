@@ -22,7 +22,7 @@ Our final testing preferences:
 We also provide a pickle file which loads a dictionary of our test logs consisting of combined, LSTM and VAE-Classifier models score results. 
 These can be directly loaded and processed if run the test preferences with --skip_test.
 
-#Configurations
+# Configurations
 #### List of parameters (this is konstantins) (maybe we can skip this:D dont bother)
 
 | Parameter     | type          | default value  | description |
@@ -37,7 +37,7 @@ These can be directly loaded and processed if run the test preferences with --sk
 | `--encoding_model` | str | `mean` | Model type for encoding sentences. Choose from `mean`, `uni-lstm`, `bi-lstm` and `bi-lstm-max-pool`|
 | `--weight_decay` | float | 0.01 | "Weight decay for the optimizer")|
 
-#### Example (this is konstantins)
+#### Training Example (this is konstantins)
 
 ```
 python train.py --encoding_model=mean --weight_decay=0.1 --max_samples=10 --log_every_steps=100 --max_epochs=10000 --batch_size=64
@@ -64,6 +64,27 @@ Starting training...
      ...
 ```
 
+#### Testing Example
+
+
+```
+python main.py
+--test-mode
+--analysis 
+--classifier CombinedClassifier
+--dataset_class LyricsDataset 
+--dataset_class_sentencevae LyricsRawDataset
+--generator SentenceVAE
+--loss VAELoss
+--num_classes 5 --embedding_size 256  --learning_rate 0.005 
+--hidden_dim 128 --hidden_dim_vae 256 --z_dim 64 --batch_size 1 
+--combined_classification 
+--classifier_dir full_lstm 
+--vaes_dir full_vae\country,full_vae\hip-hop,full_vae\metal,full_vae\pop,full_vae\rock 
+--classifier_name model_best --vaes_names model_best,model_best,model_best,model_best,model_best 
+--combination learn_sum
+--combined_weights combine
+```
 
 LINK TO DATASET MAYBE?
 
