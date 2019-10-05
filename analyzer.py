@@ -231,10 +231,10 @@ class Analyzer:
     def analyze_misclassifications(self, test_logs):
 
         if test_logs is not None:
-            with open('logs_full_on_full_wlens.pickle', 'wb') as handle:
+            with open('test_logs.pickle', 'wb') as handle:
                 pickle.dump(test_logs, handle, protocol=pickle.HIGHEST_PROTOCOL)
         else:
-            with open('logs_full_on_full_wlens.pickle', 'rb') as handle:
+            with open('test_logs.pickle', 'rb') as handle:
                 test_logs = pickle.load(handle)
 
         analysis_folder = self.ensure_analyzer_filesystem()
@@ -244,8 +244,6 @@ class Analyzer:
         vaes_scores = torch.stack(test_logs['combination']['vaes_scores']).view(-1, 5)
         targets = torch.stack(test_logs['true_targets']).view(-1).to(self.device)
         song_lengths = torch.stack(test_logs['length_lstm']).view(-1).to(self.device)
-
-
 
         _, combined_predictions = combined_scores.max(dim=-1)
         _, classifier_predictions = classifier_scores.max(dim=-1)
@@ -386,7 +384,7 @@ class Analyzer:
         classifier_prediction_values = classifier_scores[np.arange(0, len(classifier_scores)),
                                                          classifier_predictions_indices.long()]
 
-        classifier_uncertain_indices = ((classifier_prediction_values <= 0.35).eq(
+        classifier_uncertain_indices = ((classifier_prediction_values <= 0.25).eq(
             classifier_prediction_values >= 0.00)).nonzero()
 
         # vae_scores_for_uncertain = vaes_scores[classifier_uncertain_indices]
@@ -399,20 +397,44 @@ class Analyzer:
         classifier_uncertain_indices_false = (classifier_compare[classifier_uncertain_indices]==0).nonzero()
         print('-', len(classifier_uncertain_indices_false)/len(classifier_uncertain_indices), 'of these are misclassifications.')
 
-        classifier_uncertain_correct_VAE = vaes_compare[classifier_uncertain_indices_correct]
-        classifier_uncertain_false_VAE = vaes_compare[classifier_uncertain_indices_false]
+        classifier_uncertain_correct_VAE = vaes_compare[classifier_uncertain_indices_correct[:,0]]
+        classifier_uncertain_false_VAE = vaes_compare[classifier_uncertain_indices_false[:,0]]
 
         print('- -', classifier_uncertain_correct_VAE.float().mean().item(), 'of the CORRECT uncertain classifications are correctly classified by the VAE.')
         print('- -', classifier_uncertain_false_VAE.float().mean().item(), 'of the uncertain MISclassifications are correctly classified by the VAE.')
 
-        classifier_uncertain_correct_Combined = combined_compare[classifier_uncertain_indices_correct]
-        classifier_uncertain_false_Combined = combined_compare[classifier_uncertain_indices_false]
+        classifier_uncertain_correct_Combined = combined_compare[classifier_uncertain_indices_correct[:,0]]
+        classifier_uncertain_false_Combined = combined_compare[classifier_uncertain_indices_false[:,0]]
 
         print('- - -', classifier_uncertain_correct_Combined.float().mean().item(),
               'of the CORRECT uncertain classifications are correctly classified by the Combined Model.')
         print('- - -', classifier_uncertain_false_Combined.float().mean().item(),
               'of the uncertain MISclassifications are correctly classified by the Combined Model.')
 
+        # ###################
+        #
+        # classifier_uncertain_indices_correct = classifier_uncertain_indices_false
+        # vae_predictions_indices, _ = vaes_scores_softmax.max(dim=-1)
+        # vae_prediction_values = vaes_scores_softmax[np.arange(0, len(classifier_scores)),
+        #                                                  classifier_predictions_indices.long()]
+        # classifier_uncertain_vae_scores = vae_prediction_values[classifier_uncertain_indices_correct[:,0]]
+        #
+        # classifier_uncertain_vae_uncertain_indices = ((classifier_uncertain_vae_scores <= 0.25).eq(
+        #     classifier_uncertain_vae_scores >= 0.00)).nonzero()
+        #
+        # print('- - - -', len(classifier_uncertain_vae_uncertain_indices) / len(classifier_uncertain_vae_scores))
+        #
+        # ####################
+        #
+        # combined_predictions_indices, _ = combined_scores.max(dim=-1)
+        # combined_prediction_values = combined_scores[np.arange(0, len(combined_scores)),
+        #                                              combined_predictions_indices.long()]
+        # classifier_uncertain_combined_scores = combined_prediction_values[classifier_uncertain_indices_correct[:,0]]
+        #
+        # classifier_uncertain_combined_uncertain_indices = ((classifier_uncertain_combined_scores <= 0.25).eq(
+        #     classifier_uncertain_combined_scores >= 0.00)).nonzero()
+        #
+        # print('- - - -', len(classifier_uncertain_combined_uncertain_indices) / len(classifier_uncertain_combined_scores))
         # print('cla', classifier_uncertain_scores.tolist())
         # print('vae', vae_scores_for_uncertain.tolist())
         # print('cla', pred_class.tolist())

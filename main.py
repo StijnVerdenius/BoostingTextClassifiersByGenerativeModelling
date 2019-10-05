@@ -95,14 +95,14 @@ def main(arguments: argparse.Namespace):
 
     # if we are in train mode..
     if arguments.test_mode:
-        # tester = Tester(model, data_loader_test, device=device, data_loader_sentence=data_loader_sentenceVAE)
-        # test_logs = tester.test()
         test_logs = None
+        if not arguments.skip_test:
+            tester = Tester(model, data_loader_test, device=device, data_loader_sentence=data_loader_sentenceVAE)
+            test_logs = tester.test()
+
         if arguments.analysis:
             analyzer = Analyzer(model, device=device, num_classes=arguments.num_classes)
             analyzer.analyze_misclassifications(test_logs)
-
-
     else:
 
         # get optimizer and loss function
@@ -204,6 +204,8 @@ def parse() -> argparse.Namespace:
     parser.add_argument('--train-classifier', action='store_true', help='train a classifier')
     parser.add_argument('--normalize_data', action='store_true', help='normalize data')
     parser.add_argument('--combined_classification', action='store_true', help='combined classification')
+    parser.add_argument('--skip_test', action='store_true', help='directly analyze data')
+
     parser.add_argument("--device", type=str,
                         help="Device to be used. Pick from none/cpu/cuda. "
                              "If default none is used automatic check will be done")

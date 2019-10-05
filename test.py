@@ -53,8 +53,8 @@ class Tester:
                 log['accuracies_per_batch'].append(accuracy_batch)
                 log['true_targets'].append(targets)
 
-                if i % 100 == 0:
-                    print('combined accuracy so far', np.mean(log['accuracies_per_batch']), i)
+                # if i % 100 == 0:
+                    # print('combined accuracy so far', np.mean(log['accuracies_per_batch']), i)
 
             return log
         except KeyboardInterrupt as e:

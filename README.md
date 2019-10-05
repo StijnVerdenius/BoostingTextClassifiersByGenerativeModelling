@@ -1,12 +1,72 @@
-# DL4NLP
+# Boosting Text Classifiers by Generative Modelling
 
-Work in progress...
+The aim of this project is to boost a simple classifier using per-class generative models that leverage the underlying per-class data marginal distribution. 
+For this purpose we have implemented a LSTM for classification and VAEs for each class in our dataset. 
+We demonstrate the promising results of this ensemble approach to boosting in our research paper. -MAYBE GIVE A LINK for paper in repo(if u wanna put it in)?-
 
-## Aim:
+![alt text](arch.png)
 
-The aim of this project is to boost a simple classifier using per-class generative models that leverage the underlying per-class data marginal distribution
+# Running
+ The implementation offers many different models, loss functions etc. to pick from, hence there are many configurations. 
+ To run training or testing you need our pre-processed data sets which take up quite some space so they're not provided in this repository. 
+ 
+## Training
+Here you can find our final training preferences:
+ -IF ITS BETTER ADD A LINK TO THE JOB THING- 
+    
+## Testing
+Our final testing preferences:
+ -IF ITS BETTER ADD A LINK TO THE JOB THING- 
 
-## Links:
+### Loading already acquired results
+We also provide a pickle file which loads a dictionary of our test logs consisting of combined, LSTM and VAE-Classifier models score results. 
+These can be directly loaded and processed if run the test preferences with --skip_test.
+
+#### List of parameters (this is konstantins) (maybe we can skip this:D dont bother)
+
+| Parameter     | type          | default value  | description |
+| ------------- |:-------------:| --------------:|-------------|
+| `--save_every_steps` | int | 1000 | Number of steps after which the model will be saved|
+| `--log_every_steps` | int | 50 | Number of steps after which the current results will be printed|
+| `--max_samples` | int | `None` | Number of samples to get from the datasets. If None, all samples will be used|
+| `--snapshot_location` | str | `None` | Snapshot location from where to load the model|
+| `--batch_size` | int | 64 | Batch size to use for the dataset |
+| `--max_epochs` | int | 100 | Amount of max epochs of the training|
+| `--learning_rate` | float | 0.1 | Learning rate |
+| `--encoding_model` | str | `mean` | Model type for encoding sentences. Choose from `mean`, `uni-lstm`, `bi-lstm` and `bi-lstm-max-pool`|
+| `--weight_decay` | float | 0.01 | "Weight decay for the optimizer")|
+
+#### Example (this is konstantins)
+
+```
+python train.py --encoding_model=mean --weight_decay=0.1 --max_samples=10 --log_every_steps=100 --max_epochs=10000 --batch_size=64
+Arguments:
+save_every_steps : 1000
+log_every_steps : 100
+max_samples : 10
+snapshot_location : None
+batch_size : 64
+max_epochs : 10000
+learning_rate : 0.1
+encoding_model : mean
+weight_decay : 0.1
+-----------------------------------------
+Loading data...
+Loading model...
+Starting training...
+  Time Epoch Iteration Progress    (%Epoch)   Loss   Dev/Loss     Train/Micro-Accuracy  Train/Macro-Accuracy  Dev/Micro-Accuracy  Dev/Macro-Accuracy
+     2     0         0     1/1         100% 1.104041 --------                  30.0000               30.0000 ------------------- -------------------
+     2     0         1 ----------- ---------  ------ 1.109723                  30.0000               30.0000             30.0000             30.0000
+     2     1         2 ----------- ---------  ------ 1.116314                  40.0000               40.0000             30.0000             30.0000
+     2     2         3 ----------- ---------  ------ 1.118268                  40.0000               40.0000             30.0000             30.0000
+     2     3         4 ----------- ---------  ------ 1.118569                  40.0000               40.0000             30.0000             30.0000
+     ...
+```
+
+
+LINK TO DATASET MAYBE?
+
+## Links: (delete these at the end)
 
 https://drive.google.com/open?id=12zTpLuKhGhmM5Ql2QvxoM0J3OJExbAo6
 
