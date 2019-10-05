@@ -231,10 +231,10 @@ class Analyzer:
     def analyze_misclassifications(self, test_logs):
 
         if test_logs is not None:
-            with open('logs_full_on_full_learned.pickle', 'wb') as handle:
+            with open('logs_full_on_full_wlens.pickle', 'wb') as handle:
                 pickle.dump(test_logs, handle, protocol=pickle.HIGHEST_PROTOCOL)
         else:
-            with open('logs_full_on_full_learned.pickle', 'rb') as handle:
+            with open('logs_full_on_full_wlens.pickle', 'rb') as handle:
                 test_logs = pickle.load(handle)
 
         analysis_folder = self.ensure_analyzer_filesystem()
@@ -313,7 +313,7 @@ class Analyzer:
                        [1 - comb_wrong_class_wrong - comb_wrong_class_right -
                         comb_right_class_wrong, comb_wrong_class_right,
                         comb_right_class_wrong, comb_wrong_class_wrong],
-                       'Ipek_plot')
+                       'percentage_plot')
 
         # PLOT 2
         classifier_y = defaultdict(lambda: np.zeros(0))
