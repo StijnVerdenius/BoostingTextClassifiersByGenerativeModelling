@@ -25,3 +25,5 @@ model_best,model_best,model_best,model_best,model_best
 --loss VAELoss
 
 --dataset_class_sentencevae LyricsRawDataset
+--combination learn_sum
+--combined_weights combine

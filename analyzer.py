@@ -231,10 +231,10 @@ class Analyzer:
     def analyze_misclassifications(self, test_logs):
 
         if test_logs is not None:
-            with open('logs_full_on_full_wlens.pickle', 'wb') as handle:
+            with open('logs_full_on_full_learned.pickle', 'wb') as handle:
                 pickle.dump(test_logs, handle, protocol=pickle.HIGHEST_PROTOCOL)
         else:
-            with open('logs_full_on_full_wlens.pickle', 'rb') as handle:
+            with open('logs_full_on_full_learned.pickle', 'rb') as handle:
                 test_logs = pickle.load(handle)
 
         analysis_folder = self.ensure_analyzer_filesystem()
@@ -250,11 +250,6 @@ class Analyzer:
         _, combined_predictions = combined_scores.max(dim=-1)
         _, classifier_predictions = classifier_scores.max(dim=-1)
         _, vaes_predictions = vaes_scores.max(dim=-1)
-
-        # print('targets', targets)
-        # print('combine', combined_predictions)
-        # print('classif', classifier_predictions)
-        # print('vaescla', vaes_predictions)
 
         classifier_compare = classifier_predictions.eq(targets)
         combined_compare = combined_predictions.eq(targets)

@@ -53,7 +53,7 @@ class Trainer:
         self._start_time = time.time()
 
     def _validate_self(self):
-        pass
+        pass #todo
 
     def train(self) -> bool:
         """

@@ -1,6 +1,13 @@
 # DL4NLP
 
+Work in progress...
+
+## Aim:
+
+The aim of this project is to boost a simple classifier using per-class generative models that leverage the underlying per-class data marginal distribution
+
 ## Links:
+
 https://drive.google.com/open?id=12zTpLuKhGhmM5Ql2QvxoM0J3OJExbAo6
 
 https://onedrive.live.com/?authkey=%21AERWc2QlWN0yqKE&id=5574F751815D9FB1%211766753&cid=5574F751815D9FB1
