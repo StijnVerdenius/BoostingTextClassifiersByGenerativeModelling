@@ -2,7 +2,7 @@
 
 The aim of this project is to boost a simple classifier using per-class generative models that leverage the underlying per-class data marginal distribution. 
 For this purpose we have implemented a LSTM for classification and VAEs for each class in our dataset. 
-We demonstrate the promising results of this ensemble approach to boosting in our research paper. -MAYBE GIVE A LINK for paper in repo(if u wanna put it in)?-
+We demonstrate the promising results of this ensemble approach to boosting in our research paper.
 
 ![alt text](arch.png)
 
@@ -10,20 +10,15 @@ We demonstrate the promising results of this ensemble approach to boosting in ou
  The implementation offers many different models, loss functions etc. to pick from, hence there are many configurations. 
  To run training or testing you need our pre-processed data sets which take up quite some space so they're not provided in this repository. 
  
-## Training
-Here you can find our final training preferences:
- -IF ITS BETTER ADD A LINK TO THE JOB THING- 
-    
-## Testing
-Our final testing preferences:
- -IF ITS BETTER ADD A LINK TO THE JOB THING- 
+### Training and Testing
+Please see configurations section below for arguments used for testing and training.
 
 ### Loading already acquired results
 We also provide a pickle file which loads a dictionary of our test logs consisting of combined, LSTM and VAE-Classifier models score results. 
 These can be directly loaded and processed if run the test preferences with --skip_test.
 
-# Configurations
-#### List of parameters (this is konstantins) (maybe we can skip this:D dont bother)
+## Configurations
+### List of parameters
 
 | Parameter     | type          | default value  | description |
 | ------------- |:-------------:| --------------:|-------------|
@@ -54,7 +49,7 @@ These can be directly loaded and processed if run the test preferences with --sk
 | `--vaes_names` | str | ` ` | State dict file under respective `vaes_dir/models/`(split by comma)|
 
 
-#### Training Example (LSTM)
+### Training Example (LSTM)
 
 ```
 python3 main.py 
@@ -64,7 +59,7 @@ python3 main.py
 --train-classifier
 ```
 
-#### Training Example (VAE)
+### Training Example (VAE)
 
 ```
 python3 main.py 
@@ -77,7 +72,7 @@ python3 main.py
 --run_name 'sentence-vae-genre-'<GenreName> 
 ```
 
-#### Testing Example
+### Testing Example
 
 
 ```
@@ -98,19 +93,6 @@ python main.py
 --combination learn_sum
 --combined_weights combine
 ```
-
-LINK TO DATASET MAYBE?
-
-## Links: (delete these at the end)
-
-https://drive.google.com/open?id=12zTpLuKhGhmM5Ql2QvxoM0J3OJExbAo6
-
-https://onedrive.live.com/?authkey=%21AERWc2QlWN0yqKE&id=5574F751815D9FB1%211766753&cid=5574F751815D9FB1
-
-https://www.overleaf.com/2949321739vycbcgjmcddj
-
-https://drive.google.com/drive/folders/1fj0jnOnTZAzYuimKFLfoqKLt2B8c7KZ4?usp=sharing
-
 
 ## sources:
 
