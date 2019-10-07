@@ -27,41 +27,54 @@ These can be directly loaded and processed if run the test preferences with --sk
 
 | Parameter     | type          | default value  | description |
 | ------------- |:-------------:| --------------:|-------------|
-| `--save_every_steps` | int | 1000 | Number of steps after which the model will be saved|
-| `--log_every_steps` | int | 50 | Number of steps after which the current results will be printed|
-| `--max_samples` | int | `None` | Number of samples to get from the datasets. If None, all samples will be used|
-| `--snapshot_location` | str | `None` | Snapshot location from where to load the model|
+| `--z_dim` | int | 32 | Latent space dimensionality|
+| `--hidden_dim` | int | 64 | Hidden dimension of a network|
+| `--hidden_dim_vae` | int | 0 | Hidden dim of VAE for cases where we need both models|
+| `--num_classes` | int | 5 | Number of classes|
+| `--embedding_size` | int | 256 | Size of Embeddings|
 | `--batch_size` | int | 64 | Batch size to use for the dataset |
-| `--max_epochs` | int | 100 | Amount of max epochs of the training|
-| `--learning_rate` | float | 0.1 | Learning rate |
-| `--encoding_model` | str | `mean` | Model type for encoding sentences. Choose from `mean`, `uni-lstm`, `bi-lstm` and `bi-lstm-max-pool`|
-| `--weight_decay` | float | 0.01 | "Weight decay for the optimizer")|
+| `--epochs` | int | 500 | Number of max epochs of the training|
+| `--learning_rate` | float | 1e-3 | Learning rate |
+| `--optimizer` | str | `Adam` | Optimizer|
+| `--loss` | str | `CrossEntropyLoss` | Loss preference `CrossEntropyLoss`, `VAELoss`, `CombinedClassifier`|
+| `--classifier` | str | `LSTMClassifier` | Model type for classifier
+| `--generator` | str | `BaseVAE` | Model type for generator: `BaseVAE`, `SentenceVAE`|
+| `--dataset_class` | str | `LyricsDataset` | Dataset type to use `LyricsDataset`, `LyricsRawDataset`|
+| `--dataset_class_sentencevae` | str | `None` | To tell whether to datasets are necessary|
+| `--genre` | str | `None` | Genre type for a class-specific VAE|
+| `--test-mode` | action | `store_true` | Testing mode|
+| `--analysis` | action | `store_true` | Whether to do analysis on test logs|
+| `--train-classifier` | action | `store_true` | Classifier training (rather than sth else)|
+| `--combined_classification` | action | `store_true` | Are we running the combined model (CombinedClassifier)|
+| `--patience` | int | `30` | how long will the model wait for improvement before stopping training|
+| `--combination` | str | `joint` | Combination heuristic to use in CombinedClassifier: `joint/learn_sum/learn_classifier`|
+| `--classifier_dir` | str | ` ` | Classifier state-dict directory to load weights from|
+| `--classifier_name` | str | ` ` | State dict file under `classifier_dir/models/`|
+| `--vaes_dir` | str | ` ` | VAE state-dict directories to load weights from (split by comma)|
+| `--vaes_names` | str | ` ` | State dict file under respective `vaes_dir/models/`(split by comma)|
 
-#### Training Example (this is konstantins)
+
+#### Training Example (LSTM)
 
 ```
-python train.py --encoding_model=mean --weight_decay=0.1 --max_samples=10 --log_every_steps=100 --max_epochs=10000 --batch_size=64
-Arguments:
-save_every_steps : 1000
-log_every_steps : 100
-max_samples : 10
-snapshot_location : None
-batch_size : 64
-max_epochs : 10000
-learning_rate : 0.1
-encoding_model : mean
-weight_decay : 0.1
------------------------------------------
-Loading data...
-Loading model...
-Starting training...
-  Time Epoch Iteration Progress    (%Epoch)   Loss   Dev/Loss     Train/Micro-Accuracy  Train/Macro-Accuracy  Dev/Micro-Accuracy  Dev/Macro-Accuracy
-     2     0         0     1/1         100% 1.104041 --------                  30.0000               30.0000 ------------------- -------------------
-     2     0         1 ----------- ---------  ------ 1.109723                  30.0000               30.0000             30.0000             30.0000
-     2     1         2 ----------- ---------  ------ 1.116314                  40.0000               40.0000             30.0000             30.0000
-     2     2         3 ----------- ---------  ------ 1.118268                  40.0000               40.0000             30.0000             30.0000
-     2     3         4 ----------- ---------  ------ 1.118569                  40.0000               40.0000             30.0000             30.0000
-     ...
+python3 main.py 
+--classifier LSTMClassifier 
+--dataset_class LyricsDataset 
+--loss CrossEntropyLoss 
+--train-classifier
+```
+
+#### Training Example (VAE)
+
+```
+python3 main.py 
+--generator SentenceVAE 
+--dataset_class LyricsRawDataset 
+--loss VAELoss 
+--batch_size 16 --eval_freq 100
+--embedding_size 256 --hidden_dim 64 
+--genre <GenreName> 
+--run_name 'sentence-vae-genre-'<GenreName> 
 ```
 
 #### Testing Example

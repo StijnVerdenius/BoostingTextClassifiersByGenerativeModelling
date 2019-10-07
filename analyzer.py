@@ -384,7 +384,7 @@ class Analyzer:
         classifier_prediction_values = classifier_scores[np.arange(0, len(classifier_scores)),
                                                          classifier_predictions_indices.long()]
 
-        classifier_uncertain_indices = ((classifier_prediction_values <= 0.25).eq(
+        classifier_uncertain_indices = ((classifier_prediction_values <= 0.30).eq(
             classifier_prediction_values >= 0.00)).nonzero()
 
         # vae_scores_for_uncertain = vaes_scores[classifier_uncertain_indices]
@@ -412,6 +412,15 @@ class Analyzer:
               'of the uncertain MISclassifications are correctly classified by the Combined Model.')
 
         # ###################
+        # combine_predictions_indices, _ = combined_scores.max(dim=-1)
+        # combine_prediction_values = combine_scores[np.arange(0, len(combined_scores)),
+        #                                                  combine_predictions_indices.long()]
+        #
+        # combine_uncertain_indices = ((combine_prediction_values <= 0.25).eq(
+        #     combine_prediction_values >= 0.00)).nonzero()
+        #
+        # print(len(combine_uncertain_indices)/len(combine_predictions_indices))
+
         #
         # classifier_uncertain_indices_correct = classifier_uncertain_indices_false
         # vae_predictions_indices, _ = vaes_scores_softmax.max(dim=-1)
